@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from model.py import *
 
 app = Flask(__name__)
 
@@ -20,7 +21,7 @@ tasks = [
 
 @app.route('/')
 def index():
-    return "Hello, World!"
+    return hello
 
 @app.route('/tasks', methods=['GET'])
 def get_tasks():
