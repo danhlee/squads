@@ -1,31 +1,23 @@
 from flask import Flask, jsonify, request, Response, json
-from model import get_model, get_prediction, TREE, BAYES
+from classifier import get_model, get_prediction, TREE, BAYES
+from flask_sqlalchemy import SQLAlchemy
+from models import db
 
 app = Flask(__name__)
-
-tasks = [
-    {
-        'id': 1,
-        'title': u'Buy groceries',
-        'description': u'Milk, Cheese, Pizza, Fruit, Tylenol', 
-        'done': False
-    },
-    {
-        'id': 2,
-        'title': u'Learn Python',
-        'description': u'Need to find a good Python tutorial on the web', 
-        'done': False
-    }
-]
-
+POSTGRES = {
+    'user': 'postgres',
+    'pw': 'password',
+    'db': 'my_database',
+    'host': 'localhost',
+    'port': '5432',
+}
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://DB_USER:PASSWORD@HOST/DATABASE'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:%(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
+db.init_app(app)
 
 @app.route('/')
 def index():
     return 'Welcome to SQUADS!'
-
-@app.route('/tasks', methods=['GET'])
-def get_tasks():
-    return jsonify({'tasks': tasks})
 
 @app.route('/predict', methods=['POST'])
 def predict():
