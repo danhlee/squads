@@ -16,8 +16,42 @@ from random import randint
 
 import sys
 
-def hello():
-  return 'hello from new file'
+TREE = 'TREE'
+BAYES = 'BAYES'
+
+# creates model using input parameter (string) and
+def get_model(model_name):
+  dataset = load_csv()
+  describe_data(dataset)
+  dataArray = dataset.to_numpy()
+  features = dataArray[:,0:10]
+  classes = dataArray[:,10]
+  validation_size = 0.20
+  seed = randint(1,10)
+  print('using seed value:', seed)
+  # split dataset into 80% training and 20% testing (also split by features and class for each)
+  features_train, features_validation, classes_train, classes_validation = model_selection.train_test_split(features, classes, test_size=validation_size, random_state=seed)
+  
+  # create model dynamically (default is decision tree)
+  if (model_name == 'TREE'):
+    model = DecisionTreeClassifier()
+  elif (model_name == 'BAYES'):
+    model = GaussianNB()
+  else:
+    model = DecisionTreeClassifier()
+    model_name = 'TREE'
+
+  scoring = 'accuracy'
+  kfold = model_selection.KFold(n_splits=10, random_state=seed)
+  cv_results = model_selection.cross_val_score(model, features_train, classes_train, cv=kfold, scoring=scoring)
+  msg = "%s: %f (%f)" % (model_name, cv_results.mean(), (cv_results.std()))
+  print('--== CROSS-VALIDATION RESULTS ==--')
+  print('model_name, mean, stdev =', msg)
+
+  # evaluate model with validation set and print results
+  evaluate_model(model, model_name, features_train, classes_train, features_validation, classes_validation)
+
+  return model
 
 # loads matches.csv
 # returns DataFrame
@@ -40,7 +74,7 @@ def describe_data(dataset):
   print('--== DESCRIPTION of DATASET ==--')
   print()
 
-def compare_models_train(dataset):
+def train_models_and_compare(dataset):
   dataArray = dataset.to_numpy()
   # arraySlice[start_row:end_row_exclusive, start_col:end_col_exclusive]
   # features = tuples minus class
@@ -79,9 +113,9 @@ def compare_models_train(dataset):
     msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
     print('model_name: mean (stdev)  =', msg)
     print('VALIDATION SET for', name)
-    compare_models_validate(model, name, features_train, classes_train, features_validation, classes_validation)
+    evaluate_model(model, name, features_train, classes_train, features_validation, classes_validation)
     
-def compare_models_validate(model, name, features_train, classes_train, features_validation, classes_validation):
+def evaluate_model(model, name, features_train, classes_train, features_validation, classes_validation):
   model.fit(features_train, classes_train)
   class_predictions = model.predict(features_validation)
   
@@ -96,53 +130,27 @@ def compare_models_validate(model, name, features_train, classes_train, features
 
 # single_match_roster = JSON request
 # returns prediction 100 or 200 as JSON response ie - {"winner": "100"}
-def predict_single_match(model, single_match_roster):
-  # class should be 100
-  test_roster1 = {
-    "b_top": "240",
-    "b_jung": "64",
-    "b_mid": "1",
-    "b_bot": "29",
-    "b_sup": "63",
-    "r_top": "17",
-    "r_jung": "24",
-    "r_mid": "238",
-    "r_bot": "51",
-    "r_sup": "432"
-  }
-
-  # class should be 200
-  test_roster2 = {
-    "b_top": "54",
-    "b_jung": "107",
-    "b_mid": "238",
-    "b_bot": "236",
-    "b_sup": "99",
-    "r_top": "62",
-    "r_jung": "92",
-    "r_mid": "103",
-    "r_bot": "96",
-    "r_sup": "25"
-  }
-
-  array_roster = json_roster_to_array(test_roster1)
+def get_prediction(model, json_roster):
+  array_roster = json_roster_to_array(json_roster)
   class_prediction = model.predict(array_roster)
+  
   # probability / confidence?
   # class_probabilities = svm.predict_proba(matches)
 
   prediction_json = {
-    "winner": str(class_prediction)
+    "winner": str(class_prediction[0])
   }
-
   print('prediction =', prediction_json)
 
   return prediction_json
 
+# create array roster that only contains the 10 players' champions in row order
 def json_roster_to_array(json_roster):
-  matches = []
   array_roster = []
   array_roster.append(json_roster["b_top"])
+  print('array_roster (so far) =', array_roster)
   array_roster.append(json_roster["b_jung"])
+  print('array_roster (so far) =', array_roster)
   array_roster.append(json_roster["b_mid"])
   array_roster.append(json_roster["b_bot"])
   array_roster.append(json_roster["b_sup"])
@@ -151,4 +159,6 @@ def json_roster_to_array(json_roster):
   array_roster.append(json_roster["r_mid"])
   array_roster.append(json_roster["r_bot"])
   array_roster.append(json_roster["r_sup"])
-  return matches.append(array_roster)
+  print('array_roster (so far) =', array_roster)
+  matches = [array_roster]
+  return matches
