@@ -16,6 +16,9 @@ from random import randint
 
 import sys
 
+def hello():
+  return 'hello from new file'
+
 # loads matches.csv
 # returns DataFrame
 def load_csv():
