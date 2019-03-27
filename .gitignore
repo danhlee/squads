@@ -1,7 +1,13 @@
 matches.csv
+
 matches/*
+
 !matches/.gitkeep
+
 test-matches/*
+
 app/__pycache__/*
+
 __pycache__/
 *.py[cod]
+*.pyc
