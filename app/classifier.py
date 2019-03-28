@@ -28,6 +28,7 @@ def get_model(model_name):
   classes = dataArray[:,10]
   validation_size = 0.20
   seed = randint(1,10)
+  print()
   print('using seed value:', seed)
   # split dataset into 80% training and 20% testing (also split by features and class for each)
   features_train, features_validation, classes_train, classes_validation = model_selection.train_test_split(features, classes, test_size=validation_size, random_state=seed)
@@ -45,9 +46,10 @@ def get_model(model_name):
   kfold = model_selection.KFold(n_splits=10, random_state=seed)
   cv_results = model_selection.cross_val_score(model, features_train, classes_train, cv=kfold, scoring=scoring)
   msg = "%s: %f (%f)" % (model_name, cv_results.mean(), (cv_results.std()))
+  print()
   print('--== CROSS-VALIDATION RESULTS ==--')
   print('model_name, mean, stdev =', msg)
-
+  
   # evaluate model with validation set and print results
   evaluate_model(model, model_name, features_train, classes_train, features_validation, classes_validation)
 
@@ -66,12 +68,12 @@ def describe_data(dataset):
   print('--== (#TUPLES, #FEATURES) ==--')
   print(dataset.shape)
   # shows first 20 tuples
+  print()
   print('--== FIRST 20 TUPLES ==--')
   print(dataset.head(20))
   print()
   print('--== DESCRIPTION of DATASET ==--')
   print(dataset.describe())
-  print('--== DESCRIPTION of DATASET ==--')
   print()
 
 def train_models_and_compare(dataset):
@@ -101,7 +103,7 @@ def train_models_and_compare(dataset):
   # Support Vector Classification
   models.append(('SVM', SVC(gamma='auto')))
 
-  print('Here come the comparisons...')
+  print('--== MODEL ACCURACY COMPARISONS ==--')
   results = []
   names = []
   scoring = 'accuracy'
@@ -118,15 +120,16 @@ def train_models_and_compare(dataset):
 def evaluate_model(model, name, features_train, classes_train, features_validation, classes_validation):
   model.fit(features_train, classes_train)
   class_predictions = model.predict(features_validation)
-  
+  print()
   print('--== VALIDATION for', name, '==--')
-  print('class predictions for validation set =', class_predictions)
-  print('accuracy of predictions =', accuracy_score(classes_validation, class_predictions))
+  print('...class predictions for validation set =', class_predictions)
+  print('...accuracy of predictions =', accuracy_score(classes_validation, class_predictions))
+  print()
   print('--== CONFUSION MATRIX ==--')
   print(confusion_matrix(classes_validation, class_predictions))
+  print()
   print('--== CLASSIFICATION REPORT ==--')
   print(classification_report(classes_validation, class_predictions))
-  print()
 
 # single_match_roster = JSON request
 # returns prediction 100 or 200 as JSON response ie - {"winner": "100"}
@@ -140,7 +143,8 @@ def get_prediction(model, json_roster):
   prediction_json = {
     "winner": str(class_prediction[0])
   }
-  print('prediction =', prediction_json)
+  print()
+  print('[ MAKING PREDICTION ] =', prediction_json)
 
   return prediction_json
 
@@ -148,9 +152,7 @@ def get_prediction(model, json_roster):
 def json_roster_to_array(json_roster):
   array_roster = []
   array_roster.append(json_roster["b_top"])
-  print('array_roster (so far) =', array_roster)
   array_roster.append(json_roster["b_jung"])
-  print('array_roster (so far) =', array_roster)
   array_roster.append(json_roster["b_mid"])
   array_roster.append(json_roster["b_bot"])
   array_roster.append(json_roster["b_sup"])
@@ -159,6 +161,5 @@ def json_roster_to_array(json_roster):
   array_roster.append(json_roster["r_mid"])
   array_roster.append(json_roster["r_bot"])
   array_roster.append(json_roster["r_sup"])
-  print('array_roster (so far) =', array_roster)
   matches = [array_roster]
   return matches
