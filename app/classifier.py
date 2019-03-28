@@ -135,7 +135,7 @@ def evaluate_model(model, name, features_train, classes_train, features_validati
 # returns prediction 100 or 200 as JSON response ie - {"winner": "100"}
 def get_prediction(model, json_roster):
   array_roster = json_roster_to_array(json_roster)
-  class_prediction = model.predict(array_roster)
+  class_prediction = model.predict([array_roster])
   
   # probability / confidence?
   # class_probabilities = svm.predict_proba(matches)
@@ -161,5 +161,4 @@ def json_roster_to_array(json_roster):
   array_roster.append(json_roster["r_mid"])
   array_roster.append(json_roster["r_bot"])
   array_roster.append(json_roster["r_sup"])
-  matches = [array_roster]
-  return matches
+  return array_roster

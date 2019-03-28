@@ -1,0 +1,85 @@
+{
+  "participants": [
+    {
+      "teamId": 100,
+      "championId": 14,
+      "timeline": {
+        "role": "SOLO",
+        "lane": "TOP"
+      }
+    },
+    {
+      "teamId": 100,
+      "championId": 498,
+      "timeline": {
+        "role": "DUO_CARRY",
+        "lane": "BOTTOM"
+      }
+    },
+    {
+      "teamId": 100,
+      "championId": 121,
+      "timeline": {
+        "role": "NONE",
+        "lane": "JUNGLE"
+      }
+    },
+    {
+      "teamId": 100,
+      "championId": 497,
+      "timeline": {
+        "role": "DUO_SUPPORT",
+        "lane": "BOTTOM"
+      }
+    },
+    {
+
+      "teamId": 100,
+      "championId": 55,
+      "timeline": {
+        "role": "SOLO",
+        "lane": "MIDDLE"
+      }
+    },
+    {
+      "teamId": 200,
+      "championId": 33,
+      "timeline": {
+        "role": "NONE",
+        "lane": "JUNGLE"
+      }
+    },
+    {
+      "teamId": 200,
+      "championId": 39,
+      "timeline": {
+        "role": "SOLO",
+        "lane": "TOP"
+      }
+    },
+    {
+      "teamId": 200,
+      "championId": 412,
+      "timeline": {
+        "role": "DUO",
+        "lane": "BOTTOM"
+      }
+    },
+    {
+      "teamId": 200,
+      "championId": 238,
+      "timeline": {
+        "role": "SOLO",
+        "lane": "MIDDLE"
+      }
+    },
+    {
+      "teamId": 200,
+      "championId": 222,
+      "timeline": {
+        "role": "DUO",
+        "lane": "BOTTOM"
+      }
+    }
+  ]
+}
