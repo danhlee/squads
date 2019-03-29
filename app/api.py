@@ -4,8 +4,8 @@ from flask_pymongo import PyMongo
 from request_validation import valid_positions, valid_championIds
 app = Flask(__name__)
 
-app.config["MONGO_DBNAME"] = 'matches'
-app.config['MONGO_URI'] = 'mongodb://localhost:27017/matches'
+app.config["MONGO_DBNAME"] = 'squads'
+app.config['MONGO_URI'] = 'mongodb://localhost:27017/squads'
 mongo = PyMongo(app)
 
 @app.route('/')
