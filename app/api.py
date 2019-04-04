@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, Response, json
-from classifier import get_model, get_prediction, TREE, BAYES
+from train import getModel, getPrediction, TREE, BAYES
 from flask_pymongo import PyMongo
+from data import getMatchDataDirectory, generateCsv
 from request_validation import valid_positions, valid_championIds
 app = Flask(__name__)
 
@@ -8,12 +9,26 @@ app.config["MONGO_DBNAME"] = 'squads'
 app.config['MONGO_URI'] = 'mongodb://localhost:27017/squads'
 mongo = PyMongo(app)
 
-@app.route('/')
-def index():
-  return 'Welcome to SQUADS!'
+# generates matches.csv using seed json data
+@app.route('/seed')
+def seed():
+  generateCsv(getMatchDataDirectory('seed'))
+  response = Response(response='generating csv using seed data...', status=200, mimetype='text/plain')
+  return response
+
+# fetches pro_50 matches as JSON array and "saves in /data" OR "reads data, appends to matches.csv, then tosses"
+# generates matches.csv using NEW json data
+@app.route('/gather')
+def gather():
+  #fetchMatches()
+  #saveAsJsonArray in /data
+  generateCsv(getMatchDataDirectory('data'))
+  response = Response(response='generating csv using new data...', status=200, mimetype='text/plain')
+  return response
 
 @app.route('/predict', methods=['POST'])
 def predict():
+  modelName = request.args['modelName']
   # request null check AND see if roster object is present in request data
   if request.method == 'POST' and request.data and 'roster' in request.get_json():
     json_roster = request.json['roster']
@@ -33,12 +48,21 @@ def predict():
           return response
         else:
           print()
-          print('[ ROSTER NOT FOUND IN DB. GENERATING MODEL... ]')
-          # creates model according to string arg
-          model = get_model(TREE)
+          print('[ ROSTER NOT FOUND IN DB. GETTING SAVED MODEL (.pkl)... ]')
+
+          # if modelName.pkl exists
+          # filter based on query param containing ML model name
+          if modelName == 'bayes':
+            # check if bayes.pkl already exists
+            # creates model according to query param
+            model = getModel(BAYES)
+          else:
+            # check if tree.pkl already exists
+            # creates model according to query param
+            model = getModel(TREE)
 
           # get predicted class using model and roster input from user
-          json_prediction = get_prediction(model, json_roster)
+          json_prediction = getPrediction(model, json_roster)
           
           # insert roster/prediction as a single match into collection (db)
           insert_match(json_roster, json_prediction)
@@ -50,8 +74,7 @@ def predict():
   # return 400 Bad Request
   return Response(response="INVALID REQUEST!", status=400, mimetype='text/plain')
 
-
-
+# DB Access Functions
 def find_match(json_roster):
   match = mongo.db.matches
   found_match = match.find_one({"roster": json_roster})

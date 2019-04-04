@@ -19,10 +19,19 @@ import sys
 TREE = 'TREE'
 BAYES = 'BAYES'
 
+
+# loads matches.csv
+# returns DataFrame
+def load_csv():
+  csv = "matches.csv"
+  names = ['b_top','b_jung','b_mid','b_bot','b_sup','r_top','r_jung','r_mid','r_bot','r_sup','winner']
+  dataset = pandas.read_csv(csv, names=names)
+  return dataset
+
 # creates model using input parameter (string) and
-def get_model(model_name):
+def getModel(model_name):
   dataset = load_csv()
-  describe_data(dataset)
+  describeData(dataset)
   dataArray = dataset.to_numpy()
   features = dataArray[:,0:10]
   classes = dataArray[:,10]
@@ -51,19 +60,10 @@ def get_model(model_name):
   print('model_name, mean, stdev =', msg)
   
   # evaluate model with validation set and print results
-  evaluate_model(model, model_name, features_train, classes_train, features_validation, classes_validation)
-
+  evaluateModel(model, model_name, features_train, classes_train, features_validation, classes_validation)
   return model
 
-# loads matches.csv
-# returns DataFrame
-def load_csv():
-  csv = "matches.csv"
-  names = ['b_top','b_jung','b_mid','b_bot','b_sup','r_top','r_jung','r_mid','r_bot','r_sup','class']
-  dataset = pandas.read_csv(csv, names=names)
-  return dataset
-
-def describe_data(dataset):
+def describeData(dataset):
   # shape shows (numberOfTuples, numberOfFeatures)
   print('--== (#TUPLES, #FEATURES) ==--')
   print(dataset.shape)
@@ -76,7 +76,7 @@ def describe_data(dataset):
   print(dataset.describe())
   print()
 
-def train_models_and_compare(dataset):
+def trainAndCompareModels(dataset):
   dataArray = dataset.to_numpy()
   # arraySlice[start_row:end_row_exclusive, start_col:end_col_exclusive]
   # features = tuples minus class
@@ -115,9 +115,9 @@ def train_models_and_compare(dataset):
     msg = "%s: %f (%f)" % (name, cv_results.mean(), cv_results.std())
     print('model_name: mean (stdev)  =', msg)
     print('VALIDATION SET for', name)
-    evaluate_model(model, name, features_train, classes_train, features_validation, classes_validation)
+    evaluateModel(model, name, features_train, classes_train, features_validation, classes_validation)
     
-def evaluate_model(model, name, features_train, classes_train, features_validation, classes_validation):
+def evaluateModel(model, name, features_train, classes_train, features_validation, classes_validation):
   model.fit(features_train, classes_train)
   class_predictions = model.predict(features_validation)
   print()
@@ -133,7 +133,7 @@ def evaluate_model(model, name, features_train, classes_train, features_validati
 
 # single_match_roster = JSON request
 # returns prediction 100 or 200 as JSON response ie - {"winner": "100"}
-def get_prediction(model, json_roster):
+def getPrediction(model, json_roster):
   array_roster = json_roster_to_array(json_roster)
   class_prediction = model.predict([array_roster])
   
