@@ -28,5 +28,15 @@ from random import randint
 # for _ in range(5):
 # 	print(random())
 
-directory = 'seed'
-print(directory + '.csv')
+# directory = 'seed'
+# print(directory + '.csv')
+
+testArray = []
+testArray.append(1)
+print(testArray)
+testArray.append(2)
+testArray.append(3)
+testArray.append(4)
+testArray.append(5)
+testArray.append(6)
+print(testArray)

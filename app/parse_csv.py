@@ -17,7 +17,7 @@ import sys
 
 # Load dataset
 csv = "matches.csv"
-names = ['b_top','b_jung','b_mid','b_bot','b_sup','r_top','r_jung','r_mid','r_bot','r_sup','class']
+names = ['b_top','b_jung','b_mid','b_bot','b_sup','r_top','r_jung','r_mid','r_bot','r_sup','winner']
 dataset = pandas.read_csv(csv, names=names)
 
 # shape shows (numberOfTuples, numberOfFeatures)
