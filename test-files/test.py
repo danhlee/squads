@@ -19,7 +19,7 @@ from random import seed
 from random import randint
 
 
-print(randint(1, 10))
+# print(randint(1, 10))
 # for _ in range(5):
 # 	print(random())
 # # seed the generator to get the same sequence
@@ -27,3 +27,6 @@ print(randint(1, 10))
 # seed(5)
 # for _ in range(5):
 # 	print(random())
+
+directory = 'seed'
+print(directory + '.csv')

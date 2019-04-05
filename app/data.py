@@ -2,14 +2,15 @@ import csv, json, sys
 import os.path
 #if you are not using utf-8 files, remove the next line
 
-#check if you pass the input file and output file
+# takes relative directory and converts all JSON matches within into csv
 def generateCsv(directory):
   for jsonFile in os.listdir(directory):
     inputFile = open( directory + jsonFile )
-    if os.path.isfile('matches.csv'):
-      outputFile = open('matches.csv','a', newline='')
+
+    if directory == './seed/':
+      outputFile = open('seed.csv','w', newline='')
     else:
-      outputFile = open('matches.csv','w', newline='')
+      outputFile = open('data.csv','w', newline='')
 
     csvWriter = csv.writer(outputFile)
     matchesObject = json.load(inputFile)
@@ -24,10 +25,8 @@ def generateCsv(directory):
       else:
         winner = '200'
 
-      #match_tuple = ''
       championsTuple = [None]*11
       for participant in participants:
-        #match_tuple += ( str(participant['championId']) + ',')
         
         lane = participant['timeline']['lane']
         role = participant['timeline']['role']
@@ -58,6 +57,7 @@ def generateCsv(directory):
       
       if None not in championsTuple:
         csvWriter.writerow(championsTuple)
+
     inputFile.close()
     outputFile.close()
 
@@ -69,6 +69,9 @@ def getMatchDataDirectory(dataSource):
   else:
     print('-----------> USING seed dir')
     return './seed/'
+
+def insertCsvIntoMatchesDb(dataSource):
+  
 
 # print(sys.argv)
 # if len(sys.argv) == 2:
