@@ -139,7 +139,7 @@ def trainModel(model_name):
   print(results_overview)
   # evaluate model with validation set and print results
   print()
-  fitted_model = createAndEvaluateModel(model, model_name, features_train, classes_train, features_validation, classes_validation)
+  fitted_model = validateAndEvaluateModel(model, model_name, features_train, classes_train, features_validation, classes_validation)
 
   if model_name == 'LDA':
     filename = 'lda.pkl'
@@ -156,10 +156,10 @@ def trainModel(model_name):
 
 ###################################################
 #
-#  createAndEvaluateModel
+#  validateAndEvaluateModel
 #
 ###################################################
-def createAndEvaluateModel(model, model_name, features_train, classes_train, features_validation, classes_validation):
+def validateAndEvaluateModel(model, model_name, features_train, classes_train, features_validation, classes_validation):
   print('\n')
   print('...testing model with validation set for', model_name)
   print()
@@ -167,9 +167,12 @@ def createAndEvaluateModel(model, model_name, features_train, classes_train, fea
   fitted_model = model.fit(features_train, classes_train)
   class_predictions = fitted_model.predict(features_validation)
 
+  # print predictions for validation set
   print('                < class predictions for validation set >\n', class_predictions)
   print()
   print()
+
+  # print confusion matrix
   print('--== CONFUSION MATRIX ==--')
   conf_matrix = confusion_matrix(classes_validation, class_predictions)
   print(pandas.DataFrame(conf_matrix))
@@ -177,6 +180,8 @@ def createAndEvaluateModel(model, model_name, features_train, classes_train, fea
   print('             --== CLASSIFICATION REPORT ==--')
   print(classification_report(classes_validation, class_predictions))
   print()
+
+  # print avg accuracy
   accuracy_msg = '...avg prediction accuracy of ' + model_name + ' ='
   print(accuracy_msg, accuracy_score(classes_validation, class_predictions))
   print()
@@ -296,7 +301,7 @@ def trainAndCompareModels(dataset):
     
     print('[ mean, std ]')
     print(results_overview)
-    createAndEvaluateModel(model, name, features_train, classes_train, features_validation, classes_validation)
+    validateAndEvaluateModel(model, name, features_train, classes_train, features_validation, classes_validation)
 
 
 ###################################################

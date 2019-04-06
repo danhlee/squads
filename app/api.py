@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, Response, json
-from train import trainModel, getPrediction, TREE, BAYES
+from train import trainModel, getPrediction, LDA, RAND
 from flask_pymongo import PyMongo
 from data import getMatchDataDirectory, insertMatches
 from request_validation import valid_positions, valid_championIds
@@ -9,21 +9,26 @@ app = Flask(__name__)
 app.config["MONGO_DBNAME"] = 'squads'
 app.config['MONGO_URI'] = 'mongodb://localhost:27017/squads'
 mongo = PyMongo(app)
-
-
-LDA = 'LDA'
-RAND = 'RAND'
+matches = mongo.db.matches
 
 ###################################################
 #
 #  /seed
 #
 ###################################################
-# generates matches.csv using seed json data
+# preprocesses all seed matches from JSON format and inserts into squads.matches
 @app.route('/seed')
 def seed():
-  insertMatches(getMatchDataDirectory('seed'))
-  response = Response(response='inserting seed matches into database...', status=200, mimetype='text/plain')
+  
+  # prevent using seed matches twice
+  count = matches.count_documents({})
+  print('count =', count)
+  msg = 'database already contains seed matches...'
+  if ( count == 0 ):
+    insertMatches(getMatchDataDirectory('seed'))
+    msg = 'inserted seed matches into database...'
+
+  response = Response(response=msg, status=200, mimetype='text/plain')
   return response
 
 
@@ -39,7 +44,7 @@ def gather():
   #fetchMatches()
   #saveAsJsonArray in /data
   insertMatches(getMatchDataDirectory('data'))
-  response = Response(response='inserting new matches into database...', status=200, mimetype='text/plain')
+  response = Response(response='gathered new matches and inserted into database...', status=200, mimetype='text/plain')
   return response
 
 
@@ -55,7 +60,9 @@ def train():
   model_name = RAND
 
   trainModel(model_name)
-  response = Response(response='training model...', status=200, mimetype='text/plain')
+
+  msg = 'model trained using ' + model_name
+  response = Response(response=msg, status=200, mimetype='text/plain')
   return response
 
 
