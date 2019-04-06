@@ -10,6 +10,15 @@ app.config["MONGO_DBNAME"] = 'squads'
 app.config['MONGO_URI'] = 'mongodb://localhost:27017/squads'
 mongo = PyMongo(app)
 
+
+LDA = 'LDA'
+RAND = 'RAND'
+
+###################################################
+#
+#  /seed
+#
+###################################################
 # generates matches.csv using seed json data
 @app.route('/seed')
 def seed():
@@ -17,6 +26,12 @@ def seed():
   response = Response(response='inserting seed matches into database...', status=200, mimetype='text/plain')
   return response
 
+
+###################################################
+#
+#  /gather
+#
+###################################################
 # fetches pro_50 matches as JSON array and "saves in /data" OR "reads data, appends to matches.csv, then tosses"
 # generates matches.csv using NEW json data
 @app.route('/gather')
@@ -27,21 +42,35 @@ def gather():
   response = Response(response='inserting new matches into database...', status=200, mimetype='text/plain')
   return response
 
+
+###################################################
+#
+#  /train (set model_name statically)
+#
+###################################################
 @app.route('/train', methods=['POST'])
 def train():
-  modelName = request.args['modelName']
-  print('modelName =======>', modelName)
-  if modelName == 'bayes':
-    trainModel('BAYES')
-  else:
-    trainModel('TREE')
+  # TODO: refactor to allow prediction with diff models via param input
+  # modelName = request.args['modelName']
+  model_name = RAND
 
+  trainModel(model_name)
   response = Response(response='training model...', status=200, mimetype='text/plain')
   return response
 
+
+
+###################################################
+#
+#  /predict (set model_name statically)
+#
+###################################################
 @app.route('/predict', methods=['POST'])
 def predict():
-  modelName = request.args['modelName']
+  # TODO: refactor to allow prediction with diff models via param input
+  # modelName = request.args['modelName']
+  model_name = RAND
+
   # request null check AND see if roster object is present in request data
   if request.data and 'roster' in request.get_json():
     json_roster = request.json['roster']
@@ -51,12 +80,6 @@ def predict():
 
       # validate championIds
       if valid_championIds(json_roster):
-        print('modelName =', modelName)
-        print(modelName == 'bayes')
-        if modelName == 'bayes':
-          model_name = 'BAYES'
-        else:
-          model_name = 'TREE'
 
         # get predicted class using model and roster input from user
         json_prediction = getPrediction(model_name, json_roster)
