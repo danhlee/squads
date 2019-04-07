@@ -1,9 +1,9 @@
 from flask import Flask, jsonify, request, Response, json
 from flask_pymongo import PyMongo
 
-from app.data import getMatchDataDirectory, insertMatches
-from app.train import trainModel, getPrediction, getModel, LDA, RAND
-from app.request_validation import valid_positions, valid_championIds
+from data import getMatchDataDirectory, insertMatches
+from train import trainModel, getPrediction, getModel, LDA, RAND
+from request_validation import valid_positions, valid_championIds
 
 
 
@@ -126,5 +126,5 @@ def predict():
 
 
 if __name__ == '__main__':
-  app.run()
-  #app.run(debug=True)
+  # app.run()
+  app.run(debug=True)
