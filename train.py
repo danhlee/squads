@@ -39,7 +39,7 @@ def getPrediction(model_name, json_roster):
   print()
   print('array_roster =', array_roster)
   np_array_roster = numpy.array([array_roster])
-  np_array_roster.astype(numpy.float64)
+  np_array_roster.astype('<U32')
   class_prediction = model.predict(np_array_roster)
   
   # probability / confidence?
