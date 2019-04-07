@@ -83,7 +83,7 @@ def gather():
 def train():
   # TODO: refactor to allow prediction with diff models via param input
   # modelName = request.args['modelName']
-  model_name = RAND
+  model_name = LDA
 
   trainModel(model_name)
 
@@ -102,7 +102,7 @@ def train():
 def predict():
   # TODO: refactor to allow prediction with diff models via param input
   # modelName = request.args['modelName']
-  model_name = RAND
+  model_name = LDA
 
   # request null check AND see if roster object is present in request data
   if request.data and 'roster' in request.get_json():
