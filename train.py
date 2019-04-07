@@ -1,5 +1,5 @@
 # Load libraries
-from numpy import np
+import numpy
 import pandas
 from pandas.plotting import scatter_matrix
 import matplotlib.pyplot as plt
@@ -38,7 +38,7 @@ def getPrediction(model_name, json_roster):
   model = getModel(model_name)
   print()
   print('array_roster =', array_roster)
-  np_array_roster = np.array([array_roster])
+  np_array_roster = numpy.array([array_roster])
   np_array_roster.astype('str')
   class_prediction = model.predict(np_array_roster)
   
