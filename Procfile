@@ -1,1 +1,1 @@
-    web: gunicorn squads.wsgi --log-file -
+web: gunicorn app.api:app
