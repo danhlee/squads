@@ -11,6 +11,20 @@ app.config['MONGO_URI'] = 'mongodb://localhost:27017/squads'
 mongo = PyMongo(app)
 matches = mongo.db.matches
 
+
+###################################################
+#
+#  /seed
+#
+###################################################
+# preprocesses all seed matches from JSON format and inserts into squads.matches
+@app.route('/')
+def index():
+  msg = '[SqualorArchive] Welcome to Squads API'
+  response = Response(response=msg, status=200, mimetype='text/plain')
+  return response
+
+
 ###################################################
 #
 #  /seed
