@@ -35,6 +35,8 @@ def getPrediction(model_name, json_roster):
   array_roster = json_roster_to_array(json_roster)
 
   model = getModel(model_name)
+  print()
+  print('array_roster =', array_roster)
   class_prediction = model.predict([array_roster])
   
   # probability / confidence?
