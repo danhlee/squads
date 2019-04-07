@@ -7,7 +7,9 @@ from train import trainModel, getModel
 
 app = Flask(__name__)
 app.config["MONGO_DBNAME"] = 'squads'
-app.config['MONGO_URI'] = 'mongodb://localhost:27017/squads'
+#app.config['MONGO_URI'] = 'mongodb://localhost:27017/squads'
+app.config['MONGO_URI'] = 'mongodb://purple:pickle1@ds215019.mlab.com:15019/heroku_mxpzq74x/squads'
+
 mongo = PyMongo(app)
 matches = mongo.db.matches
 
