@@ -18,7 +18,7 @@ import pickle
 import sys
 import os
 from data import generateCsv
-LDA = 'LDA'
+TREE = 'TREE'
 RAND = 'RAND'
 
 
@@ -57,8 +57,8 @@ def getPrediction(model_name, json_roster):
 ###################################################
 #returns model object from model.pkl file using model_name argument, creates new model.pkl if it doesn't exist
 def getModel(model_name):
-  if model_name == 'LDA':
-    fileName = 'lda.pkl'
+  if model_name == TREE:
+    fileName = 'tree.pkl'
   else:
     fileName = 'rand.pkl'
 
@@ -107,7 +107,7 @@ def trainModel(model_name):
     print()
     print('...creating Random Forest Classifier model')
     model = RandomForestClassifier()
-  elif (model_name == LDA):
+  elif (model_name == TREE):
     print()
     print('...creating LDA model')
     model = LinearDiscriminantAnalysis()
@@ -141,8 +141,8 @@ def trainModel(model_name):
   print()
   fitted_model = validateAndEvaluateModel(model, model_name, features_train, classes_train, features_validation, classes_validation)
 
-  if model_name == 'LDA':
-    filename = 'lda.pkl'
+  if model_name == TREE:
+    filename = 'tree.pkl'
   else:
     filename = 'rand.pkl'
 

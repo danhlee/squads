@@ -82,8 +82,10 @@ def gather():
 @app.route('/train', methods=['POST'])
 def train():
   # TODO: refactor to allow prediction with diff models via param input
-  # modelName = request.args['modelName']
-  model_name = LDA
+  modelName = request.args['modelName']
+  if modelName != 'TREE':
+    modelName =  'RAND'
+  model_name = modelName
 
   trainModel(model_name)
 
@@ -101,8 +103,10 @@ def train():
 @app.route('/predict', methods=['POST'])
 def predict():
   # TODO: refactor to allow prediction with diff models via param input
-  # modelName = request.args['modelName']
-  model_name = LDA
+  modelName = request.args['modelName']
+  if modelName != 'TREE':
+    modelName =  'RAND'
+  model_name = modelName
 
   # request null check AND see if roster object is present in request data
   if request.data and 'roster' in request.get_json():
