@@ -2,7 +2,17 @@ import csv, json, sys
 import os.path
 from pymongo import MongoClient
 
-client = MongoClient('mongodb://purple:pickle1@ds215019.mlab.com:15019/heroku_mxpzq74x')
+
+#################### DEV ##########################
+#
+# client = MongoClient('mongodb://localhost:27017/squads')
+#
+#################### PROD #########################
+#
+# client = MongoClient('mongodb://purple:pickle1@ds215019.mlab.com:15019/heroku_mxpzq74x')
+#
+###################################################
+
 db = client.squads
 
 
