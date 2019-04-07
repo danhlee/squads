@@ -37,7 +37,8 @@ def getPrediction(model_name, json_roster):
   model = getModel(model_name)
   print()
   print('array_roster =', array_roster)
-  class_prediction = model.predict([array_roster])
+  
+  class_prediction = model.predict([array_roster].astype('str'))
   
   # probability / confidence?
   # class_probabilities = svm.predict_proba(matches)
