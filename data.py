@@ -5,7 +5,7 @@ from pymongo import MongoClient
 
 #################### DEV ##########################
 #
-# client = MongoClient('mongodb://localhost:27017/squads')
+# connection = MongoClient('mongodb://localhost:27017/squads')
 #
 #################### PROD #########################
 #
@@ -21,7 +21,7 @@ db = connection['heroku_mxpzq74x']
 # takes relative directory and converts all JSON matches within into csv
 def insertMatches(directory):
   for jsonFile in os.listdir(directory):
-    inputFile = open( directory + jsonFile )
+    inputFile = open( directory + jsonFile, encoding = "ISO-8859-1" )
     matchesObject = json.load(inputFile)
     matchesArray = matchesObject['matches']
 
