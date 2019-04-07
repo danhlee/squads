@@ -6,17 +6,18 @@ from pymongo import MongoClient
 #################### DEV ##########################
 #
 # connection = MongoClient('mongodb://localhost:27017/squads')
+# db = connection['squads']
 #
 #################### PROD #########################
 #
 connection = MongoClient('mongodb://purple:pickle1@ds215019.mlab.com:15019/heroku_mxpzq74x')
+db = connection['heroku_mxpzq74x']
 #
 ###################################################
 
-db = connection['heroku_mxpzq74x']
 
-# connection = pymongo.MongoClient('ds215019.mlab.com', 15019)
-# db.authenticate('purple', 'pickle1')
+
+
 
 # takes relative directory and converts all JSON matches within into csv
 def insertMatches(directory):
