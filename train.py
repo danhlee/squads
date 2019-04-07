@@ -1,4 +1,5 @@
 # Load libraries
+from numpy import np
 import pandas
 from pandas.plotting import scatter_matrix
 import matplotlib.pyplot as plt
@@ -37,8 +38,9 @@ def getPrediction(model_name, json_roster):
   model = getModel(model_name)
   print()
   print('array_roster =', array_roster)
-  
-  class_prediction = model.predict([array_roster].astype('str'))
+  np_array_roster = np.array([array_roster)
+  np_array_roster.astype('str')
+  class_prediction = model.predict(np_array_roster)
   
   # probability / confidence?
   # class_probabilities = svm.predict_proba(matches)
