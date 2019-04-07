@@ -17,7 +17,7 @@ from random import randint
 import pickle
 import sys
 import os
-from data import generateCsv
+from app.data import generateCsv
 LDA = 'LDA'
 RAND = 'RAND'
 

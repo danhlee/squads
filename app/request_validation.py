@@ -1,5 +1,5 @@
-from champions import championId_list
-from train import json_roster_to_array
+from app.champions import championId_list
+from app.train import json_roster_to_array
 
 def valid_positions(json_roster):
   roles = ["b_top","b_jung","b_mid","b_bot","b_sup","r_top","r_jung","r_mid","r_bot","r_sup"]

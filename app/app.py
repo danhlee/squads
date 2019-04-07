@@ -1,12 +1,13 @@
 from flask import Flask, jsonify, request, Response, json
-from train import trainModel, getPrediction, LDA, RAND
 from flask_pymongo import PyMongo
-from data import getMatchDataDirectory, insertMatches
-from request_validation import valid_positions, valid_championIds
-from train import trainModel, getModel
+
+from app.data import getMatchDataDirectory, insertMatches
+from app.train import trainModel, getPrediction, getModel, LDA, RAND
+from app.request_validation import valid_positions, valid_championIds
+
+
 
 app = Flask(__name__)
-
 
 #################### DEV ##########################
 #
@@ -62,7 +63,7 @@ def seed():
 #  /gather
 #
 ###################################################
-# fetches pro_50 matches as JSON array and "saves in /data" OR "reads data, appends to matches.csv, then tosses"
+# fetches pro_50 matches as JSON array and "saves in /gathered_data" OR "reads data, appends to matches.csv, then tosses"
 # generates matches.csv using NEW json data
 @app.route('/gather')
 def gather():

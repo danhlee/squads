@@ -9,7 +9,7 @@ from pymongo import MongoClient
 #
 #################### PROD #########################
 #
-# client = MongoClient('mongodb://purple:pickle1@ds215019.mlab.com:15019/heroku_mxpzq74x')
+client = MongoClient('mongodb://purple:pickle1@ds215019.mlab.com:15019/heroku_mxpzq74x')
 #
 ###################################################
 
@@ -72,7 +72,7 @@ def getMatchDataDirectory(dataSource):
   print('dataSource =', dataSource)
   if dataSource != 'seed':
     print('-----------> USING data dir')
-    return './data/'
+    return './gathered_data/'
   else:
     print('-----------> USING seed dir')
     return './seed/'
