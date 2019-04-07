@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request, Response, json
 from flask_pymongo import PyMongo
 
 from data import getMatchDataDirectory, insertMatches
-from train import trainModel, getPrediction, getModel, LDA, RAND
+from train import trainModel, getPrediction, getModel, TREE, RAND
 from request_validation import valid_positions, valid_championIds
 
 
@@ -83,8 +83,8 @@ def gather():
 def train():
   # TODO: refactor to allow prediction with diff models via param input
   modelName = request.args['modelName']
-  if modelName != 'TREE':
-    modelName =  'RAND'
+  if modelName != TREE:
+    modelName = RAND
   model_name = modelName
 
   trainModel(model_name)
@@ -104,8 +104,8 @@ def train():
 def predict():
   # TODO: refactor to allow prediction with diff models via param input
   modelName = request.args['modelName']
-  if modelName != 'TREE':
-    modelName =  'RAND'
+  if modelName != TREE:
+    modelName = RAND
   model_name = modelName
 
   # request null check AND see if roster object is present in request data
