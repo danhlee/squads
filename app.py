@@ -26,7 +26,7 @@ matches = mongo.db.matches
 
 ###################################################
 #
-#  /seed
+#  /
 #
 ###################################################
 # preprocesses all seed matches from JSON format and inserts into squads.matches
