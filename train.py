@@ -59,17 +59,25 @@ def getPrediction(model_name, json_roster):
 ###################################################
 #
 #  getModel
-#
+# overwrite_model: returns boolean (switch to turn on overwrite always)
 ###################################################
 #returns model object from model.pkl file using model_name argument, creates new model.pkl if it doesn't exist
 def getModel(model_name):
+  overwrite_model = True
+  print('...overwrite_model =', overwrite_model)
+
   if model_name == TREE:
     fileName = 'tree.pkl'
   else:
     fileName = 'rand.pkl'
 
+  # [TODO] current setup will always overwrite model.pkl file 
+  # (intention is to always overwrite after gathering new data, )
   if not os.path.isfile(fileName):
-    print('...model not found...training a new model', fileName)
+    print('...model not found...training new model', fileName)
+    trainModel(model_name)
+  elif overwrite_model is True:
+    print('...overwriting model')
     trainModel(model_name)
   
   print('...loading model', fileName)
