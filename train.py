@@ -114,8 +114,8 @@ def trainModel(model_name):
     model = RandomForestClassifier()
   elif (model_name == TREE):
     print()
-    print('...creating LDA model')
-    model = LinearDiscriminantAnalysis()
+    print('...creating TREE model')
+    model = DecisionTreeClassifier()
   else:
     print()
     print('...invalid model name given...creating Random Forest Classifier model by default')
@@ -226,6 +226,8 @@ def json_roster_to_array(json_roster):
   array_roster.append(json_roster["r_mid"])
   array_roster.append(json_roster["r_bot"])
   array_roster.append(json_roster["r_sup"])
+  data = numpy.array(array_roster, dtype=numpy.float64)
+  #array_roster = array_roster.astype(np.float64)
   return array_roster
 
 ###################################################
