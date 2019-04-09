@@ -38,8 +38,9 @@ def getPrediction(model_name, json_roster):
   model = getModel(model_name)
   print()
   print('array_roster =', array_roster)
-  # np_array_roster = numpy.array([array_roster])
-  # np_array_roster.astype('<U32')
+
+  # # [TODO] conversion possibly necessary for LDA and other numeric features
+  # array_roster = numpy.array(array_roster, dtype=numpy.float64)
   class_prediction = model.predict([array_roster])
   
   # probability / confidence?
@@ -226,8 +227,7 @@ def json_roster_to_array(json_roster):
   array_roster.append(json_roster["r_mid"])
   array_roster.append(json_roster["r_bot"])
   array_roster.append(json_roster["r_sup"])
-  data = numpy.array(array_roster, dtype=numpy.float64)
-  #array_roster = array_roster.astype(np.float64)
+  
   return array_roster
 
 ###################################################

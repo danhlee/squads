@@ -76,7 +76,8 @@ def gather():
 
 ###################################################
 #
-#  /train (set model_name statically)
+#  /train
+#  (model_name = TREE or RAND)
 #
 ###################################################
 @app.route('/train', methods=['POST'])
@@ -97,7 +98,8 @@ def train():
 
 ###################################################
 #
-#  /predict (set model_name statically)
+#  /predict 
+#  (model_name = TREE or RAND)
 #
 ###################################################
 @app.route('/predict', methods=['POST'])
@@ -111,7 +113,7 @@ def predict():
   # request null check AND see if roster object is present in request data
   if request.data and 'roster' in request.get_json():
     json_roster = request.json['roster']
-    
+
     # validate roster positions (1 of each for each team)
     if valid_positions(json_roster):
 
