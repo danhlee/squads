@@ -128,7 +128,7 @@ def predict():
         return response
 
   # return 400 Bad Request
-  return Response(response="INVALID REQUEST!", status=400, mimetype='text/plain')
+  return Response(response="Invalid Request! Make sure roster and role values are valid.", status=400, mimetype='text/plain')
 
 
 if __name__ == '__main__':
