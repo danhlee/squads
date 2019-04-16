@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, Response, json
 from flask_pymongo import PyMongo
+from flask_cors import CORS
 
 from data import getMatchDataDirectory, insertMatches
 from train import trainModel, getPrediction, getModel, TREE, RAND
@@ -8,6 +9,7 @@ from request_validation import valid_positions, valid_championIds
 
 
 app = Flask(__name__)
+CORS(app, supports_credentials=True)
 
 #################### DEV ##########################
 #
@@ -31,7 +33,6 @@ matches = mongo.db.matches
 ###################################################
 # preprocesses all seed matches from JSON format and inserts into squads.matches
 @app.route('/')
-@cross_origin()
 def index():
   msg = '[SqualorArchive] Welcome to Squads API'
   response = Response(response=msg, status=200, mimetype='text/plain')
