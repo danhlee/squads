@@ -82,7 +82,7 @@ def gather():
 #  (model_name = TREE or RAND)
 #
 ###################################################
-@app.route('/train', methods=['POST'])
+@app.route('/train')
 def train():
   # TODO: refactor to allow prediction with diff models via param input
   modelName = request.args['modelName']
