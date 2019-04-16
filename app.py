@@ -31,6 +31,7 @@ matches = mongo.db.matches
 ###################################################
 # preprocesses all seed matches from JSON format and inserts into squads.matches
 @app.route('/')
+@cross_origin()
 def index():
   msg = '[SqualorArchive] Welcome to Squads API'
   response = Response(response=msg, status=200, mimetype='text/plain')
