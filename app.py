@@ -51,7 +51,7 @@ def seed():
   # prevent using seed matches twice
   count = matches.count_documents({})
   print('count =', count)
-  msg = 'database already contains seed matches...'
+  msg = 'Database already contains seed matches...'
   if ( count == 0 ):
     insertMatches(getMatchDataDirectory('seed'))
     msg = 'inserted seed matches into database...'
@@ -72,7 +72,11 @@ def gather():
   #fetchMatches()
   #saveAsJsonArray in /data
   insertMatches(getMatchDataDirectory('data'))
-  response = Response(response='gathered new matches and inserted into database...', status=200, mimetype='text/plain')
+  count = matches.count_documents({})
+
+  msg = 'Gathered new matches and inserted into database. Total document count is now: ' + str(count) + '...'
+
+  response = Response(response=msg, status=200, mimetype='text/plain')
   return response
 
 
@@ -90,10 +94,16 @@ def train():
     modelName = RAND
   model_name = modelName
 
-  trainModel(model_name)
-
+  model_evaluation = trainModel(model_name)
+  
   msg = 'model trained using ' + model_name
-  response = Response(response=msg, status=200, mimetype='text/plain')
+
+  evaluation_results = {
+    'modelEvaluation': model_evaluation,
+    'msg': msg
+  }
+
+  response = Response(response=json.dumps(evaluation_results), status=200, mimetype='application/json')
   return response
 
 

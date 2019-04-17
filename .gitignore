@@ -2,3 +2,4 @@ matches.csv
 __pycache__/*
 __pycache__/*.py[cod]
 *.csv
+*.pkl

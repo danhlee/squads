@@ -63,7 +63,7 @@ def getPrediction(model_name, json_roster):
 ###################################################
 #returns model object from model.pkl file using model_name argument, creates new model.pkl if it doesn't exist
 def getModel(model_name):
-  overwrite_model = True
+  overwrite_model = False
   print('...overwrite_model =', overwrite_model)
 
   if model_name == TREE:
@@ -71,8 +71,8 @@ def getModel(model_name):
   else:
     fileName = 'rand.pkl'
 
-  # [TODO] current setup will always overwrite model.pkl file 
-  # (intention is to always overwrite after gathering new data, )
+  # [TODO] if overwrite_model == True, will always overwrite model.pkl file 
+  # (intention is to always overwrite after gathering new data with /gather )
   if not os.path.isfile(fileName):
     print('...model not found...training new model', fileName)
     trainModel(model_name)
@@ -94,17 +94,18 @@ def getModel(model_name):
 #
 ###################################################
 # creates a model specified by model_name parameter and saves as model_name.pkl file (overwrites .pkl file)
+# ENHANCEMENT: returns evaluation object {modelName, avg_precision, avg_recall, avg_accuracy, avg_f1_score, confusion_matrix(FP,FN,TP,TN) }
 def trainModel(model_name):
   seed = 5
-  # generate csv from all tuples in db
+  ## generate csv from all tuples in db
   generateCsv()
-
-  # create dataframe and convert to 2d array
+  
+  ## create dataframe and convert to 2d array
   dataset = loadCsv()
   describeData(dataset)
   dataArray = dataset.to_numpy()
 
-  # slice array into features set and classes set
+  ## slice array into features set and classes set
   features = dataArray[:,0:10]
   classes = dataArray[:,10]
   validation_size = 0.20
@@ -131,7 +132,7 @@ def trainModel(model_name):
     model = RandomForestClassifier()
     model_name = RAND
   
-  # k-folds cross validation
+  ##[CROSS-VALIDATION] k-folds cross-validation
   print()
   print('...performing cross-validation using k-Folds with 10 splits')
   print('...using seed value:', seed)
@@ -139,33 +140,48 @@ def trainModel(model_name):
   kfold = model_selection.KFold(n_splits=10, random_state=seed)
   cv_results = model_selection.cross_val_score(model, features_train, classes_train, cv=kfold, scoring=scoring)
   
-  print()
+  print(' ')
   results_overview = "[ %f, %f ]" % (cv_results.mean(), cv_results.std())
-  print()
+  print(' ')
+  print('--------------------------------------k-folds cross-validation---------------------------------------')
   print('[START] Cross-Validation Results for', model_name)
   print()
   print('             < 10-folds cross-validation accuracies >')
   print(cv_results)
   print()
   
-  # mean accuracy and std
+  ## mean accuracy and std of k-folds cross-validation
   print('[ mean, std ]')
   print(results_overview)
-  # evaluate model with validation set and print results
-  print()
-  fitted_model = validateAndEvaluateModel(model, model_name, features_train, classes_train, features_validation, classes_validation)
+  print(' ')
+  print('-----------------------------------------------------------------------------------------------------')
 
+  ##[VALIDATION SET] evaluate model with validation set and print results
+  fitted_model = getFittedModel(model, features_train, classes_train)
+  fitted_model_evaluation = validateAndEvaluateModel(fitted_model, model_name, features_validation, classes_validation)
+
+  
   if model_name == TREE:
     filename = 'tree.pkl'
   else:
     filename = 'rand.pkl'
 
-  # create .pkl file to store model
+  ##[CREATE MODEL FILE] create .pkl file to store model
   print('...creating pickle file: ' + filename)
   outputFile = open(filename, 'wb')
   pickle.dump(fitted_model, outputFile)
   outputFile.close()
 
+  return fitted_model_evaluation
+
+
+###################################################
+#
+#  getFittedModel
+#
+###################################################
+def getFittedModel(model, features_train, classes_train):
+  return model.fit(features_train, classes_train)
 
 
 ###################################################
@@ -173,33 +189,51 @@ def trainModel(model_name):
 #  validateAndEvaluateModel
 #
 ###################################################
-def validateAndEvaluateModel(model, model_name, features_train, classes_train, features_validation, classes_validation):
-  print('\n')
-  print('...testing model with validation set for', model_name)
-  print()
+def validateAndEvaluateModel(fitted_model, model_name, features_validation, classes_validation):
+  print('----------------------------------------validate model---------------------------------------------')
+  print(' ')
+  print('[START] Testing model with validation set for', model_name)
+  print(' ')
   
-  fitted_model = model.fit(features_train, classes_train)
   class_predictions = fitted_model.predict(features_validation)
 
   # print predictions for validation set
   print('                < class predictions for validation set >\n', class_predictions)
-  print()
-  print()
+  print(' ')
+  print(' ')
 
   # print confusion matrix
   print('--== CONFUSION MATRIX ==--')
-  conf_matrix = confusion_matrix(classes_validation, class_predictions)
-  print(pandas.DataFrame(conf_matrix))
-  print()
+  confusion_matrix_temp = confusion_matrix(classes_validation, class_predictions)
+  confusion_matrix_array = [str(confusion_matrix_temp[0][0]), str(confusion_matrix_temp[0][1]), str(confusion_matrix_temp[1][0]), str(confusion_matrix_temp[1][1]) ]
+  print('just confusion matrix:', confusion_matrix_temp)
+  print(' ')
+  print(pandas.DataFrame(confusion_matrix_temp))
+  print(' ')
   print('             --== CLASSIFICATION REPORT ==--')
-  print(classification_report(classes_validation, class_predictions))
-  print()
+  vs_classificaiton_report = classification_report(classes_validation, class_predictions)
+  print(' ')
 
   # print avg accuracy
+  print(' ')
+  avg_accuracy = accuracy_score(classes_validation, class_predictions)
   accuracy_msg = '...avg prediction accuracy of ' + model_name + ' ='
-  print(accuracy_msg, accuracy_score(classes_validation, class_predictions))
-  print()
-  return fitted_model
+  print(accuracy_msg, avg_accuracy)
+  print(' ')
+  print('-----------------------------------------------------------------------------------------------------')
+  
+  model_evaluation = {
+    'modelName': model_name,
+    'confusionMatrix': confusion_matrix_array,
+    'avgAccuracy': avg_accuracy,
+    'classificationReport': vs_classificaiton_report
+  }
+
+
+  return model_evaluation
+
+
+
 
 
 
@@ -245,17 +279,19 @@ def json_roster_to_array(json_roster):
 ###################################################
 def describeData(dataset):
   # shape shows (numberOfTuples, numberOfFeatures)
+  print('----------------------------------------describe dataset---------------------------------------------')
+  print(' ')
   print('--== (#TUPLES, #FEATURES) ==--')
   print(dataset.shape)
   # shows first 20 tuples
-  print()
+  print(' ')
   print('--== FIRST 20 TUPLES ==--')
   print(dataset.head(20))
-  print()
+  print(' ')
   print('--== DESCRIPTION of DATASET ==--')
   print(dataset.describe())
-  print()
-
+  print(' ')
+  print('-----------------------------------------------------------------------------------------------------')
 
 
 
@@ -316,7 +352,40 @@ def trainAndCompareModels(dataset):
     
     print('[ mean, std ]')
     print(results_overview)
-    validateAndEvaluateModel(model, name, features_train, classes_train, features_validation, classes_validation)
+    validateAndEvaluateAllModels(model, name, features_train, classes_train, features_validation, classes_validation)
+
+def validateAndEvaluateAllModels(model, model_name, features_train, classes_train, features_validation, classes_validation):
+  print('----------------------------------------validate all models---------------------------------------------')
+  print(' ')
+  print('[START] Testing model with validation set for', model_name)
+  print(' ')
+  fitted_model = model.fit(features_train, classes_train)
+  class_predictions = fitted_model.predict(features_validation)
+
+  # print predictions for validation set
+  print('                < class predictions for validation set >\n', class_predictions)
+  print(' ')
+  print(' ')
+
+  # print confusion matrix
+  print('--== CONFUSION MATRIX ==--')
+  confusion_matrix_temp = confusion_matrix(classes_validation, class_predictions)
+  confusion_matrix_array = [str(confusion_matrix_temp[0][0]), str(confusion_matrix_temp[0][1]), str(confusion_matrix_temp[1][0]), str(confusion_matrix_temp[1][1]) ]
+  print('just confusion matrix:', confusion_matrix_temp)
+  print(' ')
+  print(pandas.DataFrame(confusion_matrix_temp))
+  print(' ')
+  print('             --== CLASSIFICATION REPORT ==--')
+  vs_classificaiton_report = classification_report(classes_validation, class_predictions)
+  print(' ')
+
+  # print avg accuracy
+  print(' ')
+  avg_accuracy = accuracy_score(classes_validation, class_predictions)
+  accuracy_msg = '...avg prediction accuracy of ' + model_name + ' ='
+  print(accuracy_msg, avg_accuracy)
+  print(' ')
+  print('-----------------------------------------------------------------------------------------------------')
 
 
 ###################################################
