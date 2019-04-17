@@ -212,6 +212,7 @@ def validateAndEvaluateModel(fitted_model, model_name, features_validation, clas
   print(' ')
   print('             --== CLASSIFICATION REPORT ==--')
   vs_classificaiton_report = classification_report(classes_validation, class_predictions)
+  print(vs_classificaiton_report)
   print(' ')
 
   # print avg accuracy
@@ -225,10 +226,8 @@ def validateAndEvaluateModel(fitted_model, model_name, features_validation, clas
   model_evaluation = {
     'modelName': model_name,
     'confusionMatrix': confusion_matrix_array,
-    'avgAccuracy': avg_accuracy,
-    'classificationReport': vs_classificaiton_report
+    'avgAccuracy': avg_accuracy
   }
-
 
   return model_evaluation
 
