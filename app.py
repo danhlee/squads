@@ -57,8 +57,10 @@ def seed():
     msg = 'Inserted seed matches into empty database.'
 
   newCount = matches.count_documents({})
-  msg = msg + ' There are currently ' + newCount + 'matches in the database...'
+  msg = msg + ' There are currently ' + str(newCount) + ' matches in the database...'
   
+  print('msg = ', msg)
+
   response = Response(response=msg, status=200, mimetype='text/plain')
   return response
 
