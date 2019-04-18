@@ -51,11 +51,14 @@ def seed():
   # prevent using seed matches twice
   count = matches.count_documents({})
   print('count =', count)
-  msg = 'Database already contains seed matches...'
+  msg = 'Database already contains seed matches.'
   if ( count == 0 ):
     insertMatches(getMatchDataDirectory('seed'))
-    msg = 'Inserted seed matches into database...'
+    msg = 'Inserted seed matches into empty database.'
 
+  newCount = matches.count_documents({})
+  msg = msg + ' There are currently ' + newCount + 'matches in the database...'
+  
   response = Response(response=msg, status=200, mimetype='text/plain')
   return response
 
