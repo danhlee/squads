@@ -96,7 +96,7 @@ def train():
 
   model_evaluation = trainModel(model_name)
   
-  msg = 'model trained using ' + model_name
+  msg = 'a new model was trained using ' + model_name + '...'
 
   evaluation_results = {
     'modelEvaluation': model_evaluation,
