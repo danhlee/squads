@@ -54,7 +54,7 @@ def seed():
   msg = 'Database already contains seed matches...'
   if ( count == 0 ):
     insertMatches(getMatchDataDirectory('seed'))
-    msg = 'inserted seed matches into database...'
+    msg = 'Inserted seed matches into database...'
 
   response = Response(response=msg, status=200, mimetype='text/plain')
   return response
@@ -88,15 +88,19 @@ def gather():
 ###################################################
 @app.route('/train')
 def train():
-  # TODO: refactor to allow prediction with diff models via param input
-  modelName = request.args['modelName']
-  if modelName != TREE:
-    modelName = RAND
-  model_name = modelName
+  # get model name from string param
+  modelNameParam = request.args['modelName']
 
-  model_evaluation = trainModel(model_name)
+  # Enforce a default model as validation (TREE is default model)
+  if modelNameParam == RAND:
+    model_evaluation = trainModel(RAND)
+    model_name = 'Random Forest Classifier'
+  else:
+    model_evaluation = trainModel(TREE)
+    model_name = 'Decision Tree Classifier'
   
-  msg = 'a new model was trained using ' + model_name + '...'
+    
+  msg = 'A new ' + model_name + ' model has been created...'
 
   evaluation_results = {
     'modelEvaluation': model_evaluation,
@@ -116,11 +120,14 @@ def train():
 ###################################################
 @app.route('/predict', methods=['POST'])
 def predict():
-  # TODO: refactor to allow prediction with diff models via param input
-  modelName = request.args['modelName']
-  if modelName != TREE:
-    modelName = RAND
-  model_name = modelName
+  
+  # Enforce a default model as validation (TREE is default model)
+  modelNameParam = request.args['modelName']
+  if modelNameParam == RAND:
+    model_name = RAND
+  else:
+    model_name = TREE
+  
 
   # request null check AND see if roster object is present in request data
   if request.data and 'roster' in request.get_json():
