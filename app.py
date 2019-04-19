@@ -75,7 +75,12 @@ def seed():
 # generates matches.csv using NEW json data
 @app.route('/gather')
 def gather():
+  print('request.args[api_key] = ', request.args['api_key'])
   
+  ## check for empty api key
+  ## if empty returns 401 unauthorized
+  if request.args['api_key'] == '':
+    return Response(response='No API key provided!', status=401, mimetype='text/plain')
   
   ## fetch matches from riot api
   apiKeyParam = '?api_key=' + request.args['api_key']
@@ -87,7 +92,8 @@ def gather():
   print('summoner_json =', summoner_json)
 
 
-  ## if api key is not valid, status_code: 403 will be returned with message: forbidden
+  ## Check for invalid api key. 
+  ## status_code: 403 will be returned with message: forbidden
   if 'status' in summoner_json and summoner_json['status']['status_code'] == 403:
     return Response(response='Invalid API key!', status=403, mimetype='text/plain')
 
