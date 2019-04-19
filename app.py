@@ -86,6 +86,12 @@ def gather():
   summoner_json = requests.get( url ).json()
   print('summoner_json =', summoner_json)
 
+
+  ## if api key is not valid, status_code: 403 will be returned with message: forbidden
+  if 'status' in summoner_json and summoner_json['status']['status_code'] == 403:
+    return Response(response='Invalid API key!', status=403, mimetype='text/plain')
+
+
   encrypted_summoner_id = summoner_json['accountId']
   print('encrypted_summoner_id =', encrypted_summoner_id)
 
