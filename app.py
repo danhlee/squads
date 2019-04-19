@@ -1,8 +1,9 @@
 from flask import Flask, jsonify, request, Response, json
 from flask_pymongo import PyMongo
 from flask_cors import CORS
+import requests
 
-from data import getMatchDataDirectory, insertMatches
+from data import getMatchDataDirectory, insertMatches, insertSingleMatch, pro_usernames
 from train import trainModel, getPrediction, getModel, TREE, RAND
 from request_validation import valid_positions, valid_championIds
 
@@ -74,13 +75,54 @@ def seed():
 # generates matches.csv using NEW json data
 @app.route('/gather')
 def gather():
-  #fetchMatches()
-  #saveAsJsonArray in /data
-  insertMatches(getMatchDataDirectory('data'))
-  count = matches.count_documents({})
+  
+  
+  ## fetch matches from riot api
+  apiKeyParam = '?api_key=' + request.args['api_key']
+  
+  ## get summonerId using user name
+  url = 'https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/' + pro_usernames[0] + apiKeyParam 
+  print('url =', url)
+  summoner_json = requests.get( url ).json()
+  print('summoner_json =', summoner_json)
 
-  msg = 'Gathered new matches and inserted into database. Total document count is now: ' + str(count) + '...'
+  encrypted_summoner_id = summoner_json['accountId']
+  print('encrypted_summoner_id =', encrypted_summoner_id)
 
+  ## get 100 most recent matches by encrypted summonerId
+  url = 'https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/' + encrypted_summoner_id + apiKeyParam
+  matches_json = requests.get( url ).json()
+  matches_array = matches_json['matches']
+
+  print(' ')
+  print('Retrieved', len(matches_array), 'matches for', pro_usernames[0])
+  print(' ')
+
+  countBefore = matches.count_documents({})
+
+  # if a summoner has less than 20 games played, iterate through all
+  if len(matches_array) > 20:
+    i = 0
+    # will make a fetch call for 20 latest games
+    while i < 20:
+      # 400 = 5v5 Draft Pick
+      # 420 = 5v5 Solo Queue Ranked
+      if matches_array[i]['queue'] == 400 or matches_array[i]['queue'] == 420:
+        url = 'https://na1.api.riotgames.com/lol/match/v4/matches/' + str(matches_array[i]['gameId']) + apiKeyParam
+        single_match_data = requests.get( url ).json()
+        insertSingleMatch(single_match_data)
+      i += 1
+  else:
+    for match in matches_array:
+      if match['queue'] == 400 or match[i]['queue'] == 420:
+        url = 'https://na1.api.riotgames.com/lol/match/v4/matches/' + str(matches_array[i]['gameId']) + apiKeyParam
+        single_match_data = requests.get( url ).json()
+        insertSingleMatch(single_match_data)
+
+  countAfter = matches.count_documents({})
+  numNewTuples = countAfter-countBefore
+  msg = 'Gathered and inserted ' + str(numNewTuples) + ' new matches. Total document count is now: ' + str(countAfter) + '...'
+  
   response = Response(response=msg, status=200, mimetype='text/plain')
   return response
 
