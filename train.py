@@ -63,6 +63,8 @@ def getPrediction(model_name, json_roster):
 ###################################################
 #returns model object from model.pkl file using model_name argument, creates new model.pkl if it doesn't exist
 def getModel(model_name):
+  
+  ## if overwrite_model is False, model is only overwritten when /train is called explicitly
   overwrite_model = False
   print('...overwrite_model =', overwrite_model)
 
@@ -279,17 +281,18 @@ def json_roster_to_array(json_roster):
 def describeData(dataset):
   # shape shows (numberOfTuples, numberOfFeatures)
   print('----------------------------------------describe dataset---------------------------------------------')
-  print(' ')
+  print('.')
   print('--== (#TUPLES, #FEATURES) ==--')
   print(dataset.shape)
   # shows first 20 tuples
-  print(' ')
+  print('.')
   print('--== FIRST 20 TUPLES ==--')
   print(dataset.head(20))
-  print(' ')
+  print('.')
   print('--== DESCRIPTION of DATASET ==--')
   print(dataset.describe())
-  print(' ')
+  print('.')
+  dataset.info()
   print('-----------------------------------------------------------------------------------------------------')
 
 
