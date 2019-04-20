@@ -36,22 +36,33 @@ def getPrediction(model_name, json_roster):
   array_roster = json_roster_to_array(json_roster)
 
   model = getModel(model_name)
-  print()
+  print('.')
   print('array_roster =', array_roster)
 
   # # [TODO] conversion possibly necessary for LDA and other numeric features
   # array_roster = numpy.array(array_roster, dtype=numpy.float64)
   class_prediction = model.predict([array_roster])
   
-  # probability / confidence?
-  # class_probabilities = svm.predict_proba(matches)
+  # probability / confidence
+  prediction_confidence = model.predict_proba([array_roster])
+  print('raw prediction ------>', class_prediction)
+  if class_prediction[0] == 100:
+    confidence_index = 0
+  else:
+    confidence_index = 1
 
+  print('.')
+  print('prediction_confidence =', prediction_confidence)
+  print('confidence_index = ', confidence_index)
+  print('prediction_confidence[0][confidence_index] =', prediction_confidence[0][confidence_index])
+  print('.')
   prediction_json = {
-    "winner": str(class_prediction[0])
+    "winner": str(class_prediction[0]),
+    "confidence": prediction_confidence[0][confidence_index]
   }
-  print()
-  print('[ PREDICTION ] =', prediction_json)
-
+  print('.')
+  print('[ PREDICTION / CONFIDENCE ] =', prediction_json)
+  
   return prediction_json
 
 
@@ -123,17 +134,12 @@ def trainModel(model_name):
   if (model_name == RAND):
     print()
     print('...creating Random Forest Classifier model')
-    model = RandomForestClassifier()
-  elif (model_name == TREE):
+    model = RandomForestClassifier(n_estimators=100)
+  else:
     print()
     print('...creating TREE model')
     model = DecisionTreeClassifier()
-  else:
-    print()
-    print('...invalid model name given...creating Random Forest Classifier model by default')
-    model = RandomForestClassifier()
-    model_name = RAND
-  
+
   ##[CROSS-VALIDATION] k-folds cross-validation
   print()
   print('...performing cross-validation using k-Folds with 10 splits')
