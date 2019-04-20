@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, Response, json
 from flask_pymongo import PyMongo
-from flask_cors import CORS
+from Flask_cors import CORS
 import requests
 
 from data import getMatchDataDirectory, insertMatches, insertSingleMatch, pro_usernames
