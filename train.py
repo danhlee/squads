@@ -2,6 +2,7 @@
 import numpy
 import pandas
 from pandas.plotting import scatter_matrix
+import matplotlib
 import matplotlib.pyplot as plt
 from sklearn import model_selection
 from sklearn.metrics import classification_report
@@ -70,7 +71,7 @@ def getPrediction(model_name, json_roster):
 ###################################################
 #
 #  getModel
-# overwrite_model: returns boolean (switch to turn on overwrite always)
+#
 ###################################################
 #returns model object from model.pkl file using model_name argument, creates new model.pkl if it doesn't exist
 def getModel(model_name):
@@ -110,15 +111,15 @@ def getModel(model_name):
 # ENHANCEMENT: returns evaluation object {modelName, avg_precision, avg_recall, avg_accuracy, avg_f1_score, confusion_matrix(FP,FN,TP,TN) }
 def trainModel(model_name):
   seed = 5
-  ## generate csv from all tuples in db
+  # generate csv from all tuples in db
   generateCsv()
   
-  ## create dataframe and convert to 2d array
+  # create dataframe and convert to 2d array
   dataset = loadCsv()
   describeData(dataset)
   dataArray = dataset.to_numpy()
 
-  ## slice array into features set and classes set
+  # slice array into features set and classes set
   features = dataArray[:,0:10]
   classes = dataArray[:,10]
   validation_size = 0.20
@@ -140,7 +141,7 @@ def trainModel(model_name):
     print('...creating TREE model')
     model = DecisionTreeClassifier()
 
-  ##[CROSS-VALIDATION] k-folds cross-validation
+  # [CROSS-VALIDATION] k-folds cross-validation
   print()
   print('...performing cross-validation using k-Folds with 10 splits')
   print('...using seed value:', seed)
@@ -158,7 +159,7 @@ def trainModel(model_name):
   print(cv_results)
   print()
   
-  ## mean accuracy and std of k-folds cross-validation
+  # mean accuracy and std of k-folds cross-validation
   print('[ mean, std ]')
   print(results_overview)
   print(' ')
@@ -174,8 +175,9 @@ def trainModel(model_name):
   else:
     filename = 'rand.pkl'
 
-  ##[CREATE MODEL FILE] create .pkl file to store model
+  # [CREATE MODEL FILE] create .pkl file to store model
   print('...creating pickle file: ' + filename)
+  # 'wb' will overwrite binary files
   outputFile = open(filename, 'wb')
   pickle.dump(fitted_model, outputFile)
   outputFile.close()
@@ -301,8 +303,29 @@ def describeData(dataset):
   dataset.info()
   print('-----------------------------------------------------------------------------------------------------')
 
+  # TODO: ROC Curve Research
+  # ############## for model eval and testing ###################
+
+  
+  # comment for production
+  # dataset.hist()
+
+  # dataset.plot(kind='scatter', x='b_top', y='winner', c='blue')
+  # dataset.plot(kind='scatter', x='b_jung', y='winner', c='blue')
+  # dataset.plot(kind='scatter', x='b_mid', y='winner', c='blue')
+  # dataset.plot(kind='scatter', x='b_bot', y='winner', c='blue')
+  # dataset.plot(kind='scatter', x='b_sup', y='winner', c='blue')
+  # dataset.plot(kind='scatter', x='r_top', y='winner', c='red')
+  # dataset.plot(kind='scatter', x='r_jung', y='winner', c='red')
+  # dataset.plot(kind='scatter', x='r_mid', y='winner', c='red')
+  # dataset.plot(kind='scatter', x='r_bot', y='winner', c='red')
+  # dataset.plot(kind='scatter', x='r_sup', y='winner', c='red')
+  # plt.show()
+  # #############################################################
 
 
+
+  
 ###################################################
 #
 #  test functions for comparing different models
@@ -310,6 +333,7 @@ def describeData(dataset):
 ###################################################
 def runModelComparison():
   dataset = loadCsv()
+  describeData(dataset)
   trainAndCompareModels(dataset)
 
 def trainAndCompareModels(dataset):
@@ -319,7 +343,7 @@ def trainAndCompareModels(dataset):
   # classes = just the classes of each tuple
   features = dataArray[:,0:10]
   classes = dataArray[:,10]
-  #20 percent of tuples reserved for validation
+  # 20 percent of tuples reserved for validation
   validation_size = 0.20
   seed = 5
   print('...seed value:', seed)
@@ -328,19 +352,19 @@ def trainAndCompareModels(dataset):
 
   models = []
   # Logistic Regression Classifier
-  models.append(('LR', LogisticRegression(solver='liblinear', multi_class='ovr')))
+  # models.append(('LR', LogisticRegression(solver='liblinear', multi_class='ovr')))
   # Linear Discriminant Analysis
-  models.append(('LDA', LinearDiscriminantAnalysis()))
+  #models.append(('LDA', LinearDiscriminantAnalysis()))
   # K-nearest neighbors Classifier
-  models.append(('KNN', KNeighborsClassifier()))
+  #models.append(('KNN', KNeighborsClassifier()))
   # Decision tree Classifier
-  models.append(('TREE', DecisionTreeClassifier()))
+  # models.append(('TREE', DecisionTreeClassifier()))
   # Gaussian Naive Bayes
-  models.append(('BAYES', GaussianNB()))
+  #models.append(('BAYES', GaussianNB()))
   # Support Vector Classification
   models.append(('SVM', SVC(gamma='auto')))
   # Random Forest Classifier
-  models.append(('RAND', RandomForestClassifier()))
+  #models.append(('RAND', RandomForestClassifier()))
 
   print('----------------------------------- MODEL COMPARISONS -----------------------------------')
   print()
@@ -378,21 +402,21 @@ def validateAndEvaluateAllModels(model, model_name, features_train, classes_trai
   # print confusion matrix
   print('--== CONFUSION MATRIX ==--')
   confusion_matrix_temp = confusion_matrix(classes_validation, class_predictions)
-  confusion_matrix_array = [str(confusion_matrix_temp[0][0]), str(confusion_matrix_temp[0][1]), str(confusion_matrix_temp[1][0]), str(confusion_matrix_temp[1][1]) ]
+  #confusion_matrix_array = [str(confusion_matrix_temp[0][0]), str(confusion_matrix_temp[0][1]), str(confusion_matrix_temp[1][0]), str(confusion_matrix_temp[1][1]) ]
   print('just confusion matrix:', confusion_matrix_temp)
-  print(' ')
+  print('.')
   print(pandas.DataFrame(confusion_matrix_temp))
-  print(' ')
+  print('.')
   print('             --== CLASSIFICATION REPORT ==--')
   vs_classificaiton_report = classification_report(classes_validation, class_predictions)
-  print(' ')
-
+  print('.')
+  print(vs_classificaiton_report)
   # print avg accuracy
-  print(' ')
+  print('.')
   avg_accuracy = accuracy_score(classes_validation, class_predictions)
   accuracy_msg = '...avg prediction accuracy of ' + model_name + ' ='
   print(accuracy_msg, avg_accuracy)
-  print(' ')
+  print('.')
   print('-----------------------------------------------------------------------------------------------------')
 
 
@@ -401,6 +425,6 @@ def validateAndEvaluateAllModels(model, model_name, features_train, classes_trai
 #  direct comparison test (uncomment and run file!)
 #
 ###################################################
-# print('...running model and comparison')
-# runModelComparison()
+print('...running model and comparison')
+runModelComparison()
 

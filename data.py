@@ -49,6 +49,9 @@ def insertSingleMatch(match):
       role = participant['timeline']['role']
       team = participant['teamId']
       
+      if role == "DUO":
+        break
+
       if lane == "TOP" and team == 100:
         matchTuple[0] = participant['championId']
       if lane == "JUNGLE" and team == 100:
@@ -72,6 +75,8 @@ def insertSingleMatch(match):
       
     matchTuple[10] = winner
     matchTuple[11] = str(match['gameId'])
+
+    # duplicate roles will cause 1 array position to contain None so it will not be inserted
     if None not in matchTuple:
       print('---------------------------------> inserting new match!')
       insertTupleIntoMatches(matchTuple)
