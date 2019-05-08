@@ -68,9 +68,9 @@ def insertSingleMatch(match):
         matchTuple[6] = participant['championId']
       if lane == "MIDDLE" and team == 200:
         matchTuple[7] = participant['championId']
-      if (role == "DUO_CARRY" or role == "DUO") and (matchTuple[8] == None) and team == 200:
+      if role == "DUO_CARRY" and team == 200:
         matchTuple[8] = participant['championId']
-      if (role == "DUO_SUPPORT" or role == "DUO") and team == 200:
+      if role == "DUO_SUPPORT" and team == 200:
         matchTuple[9] = participant['championId']
       
     matchTuple[10] = winner
