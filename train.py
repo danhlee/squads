@@ -425,6 +425,6 @@ def validateAndEvaluateAllModels(model, model_name, features_train, classes_trai
 #  direct comparison test (uncomment and run file!)
 #
 ###################################################
-print('...running model and comparison')
-runModelComparison()
+# print('...running model and comparison')
+# runModelComparison()
 
