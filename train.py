@@ -177,7 +177,7 @@ def trainModel(model_name):
 
   # [CREATE MODEL FILE] create .pkl file to store model
   print('...creating pickle file: ' + filename)
-  # 'wb' will overwrite binary files
+  # wb will overwrite binary files
   outputFile = open(filename, 'wb')
   pickle.dump(fitted_model, outputFile)
   outputFile.close()
