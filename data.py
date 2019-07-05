@@ -17,8 +17,18 @@ db = connection['heroku_mxpzq74x']
 
 
 
-# takes relative directory and converts all JSON matches within into csv
+###################################################
+#
+#  insertMatches
+#
+###################################################
+# 1. takes relative directory and loops through all JSON match files for cleaning/preprocessing
+# 2. iterates through each of the 100 matches in each JSON file
+# 3. calls insertSingleMatch
+###################################################
 def insertMatches(directory):
+  dirtyCount = 0
+
   for jsonFile in os.listdir(directory):
     inputFile = open( directory + jsonFile, encoding = "ISO-8859-1" )
     matchesObject = json.load(inputFile)
@@ -26,13 +36,28 @@ def insertMatches(directory):
 
     # iterate through each match and extract roster and winner
     for match in matchesArray:
-      insertSingleMatch(match)
+      isDirty = insertSingleMatch(match)
+
+      # counts the number of omitted matches
+      if isDirty is True:
+        dirtyCount = dirtyCount + 1
     inputFile.close()
 
+  print(dirtyCount, 'seed matches were omitted...')
+
+
+###################################################
+#
+#  insertSingleMatch
+#
+###################################################
+# 1. helper method that inserts each match object into the MongoDB collection
+# 2. cleans data by omitting matches with duplicate roles & ambiguous DUO role
+###################################################
 def insertSingleMatch(match):
   cursor = db.matches.find({ 'gameId': str(match['gameId']) })
 
-  ## insert only if match doesn't already exist in db
+  ## if match with identical gameId doesn't already exist in db...
   if cursor.count() == 0: 
     participants = match['participants']
     teams = match['teams']
@@ -44,13 +69,14 @@ def insertSingleMatch(match):
 
     matchTuple = [None]*12
     for participant in participants:
-      
+
       lane = participant['timeline']['lane']
       role = participant['timeline']['role']
       team = participant['teamId']
       
       if role == "DUO":
-        break
+        # break
+        return True
 
       if lane == "TOP" and team == 100:
         matchTuple[0] = participant['championId']
@@ -76,10 +102,13 @@ def insertSingleMatch(match):
     matchTuple[10] = winner
     matchTuple[11] = str(match['gameId'])
 
+    ## TODO test to count how many dirtyTuples exist in seed dataset
     # duplicate roles will cause 1 array position to contain None so it will not be inserted
     if None not in matchTuple:
-      print('---------------------------------> inserting new match!')
       insertTupleIntoMatches(matchTuple)
+      return False
+    else:
+      return True
 
 def getMatchDataDirectory(dataSource):
   print('dataSource =', dataSource)
@@ -129,13 +158,22 @@ def generateCsv():
   outputFile.close()
 
 
+################################################
+#
+# list of pro player usernames
+#
+################################################
+## - 100 matches will be gathered for each player
+## - mind rate limits
+################################################
 pro_usernames = [
   'Doublelift'
 ]
 
+
 ################################################
 #
-# 
+# for running data.py in command prompt arguments
 #
 ################################################
 
