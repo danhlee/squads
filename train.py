@@ -322,7 +322,7 @@ def runModelComparison():
   trainAndCompareModels(dataset)
 
 def runSingleModelTest():
-  # generateCsv()
+  generateCsv()
   dataset = loadCsv()
   
   ################ for model eval and testing ###################
@@ -393,53 +393,18 @@ def runSingleModelTest():
 
 
   ## SPLIT predict proba 2D array to get just 1 column
-  predicted_probabilities = predicted_probabilities[:, 1]
+  # print('predicted_probabilities (before) ==>', predicted_probabilities)
+  # predicted_probabilities = predicted_probabilities[:, 1]
+  # print('classes_validation ==>', classes_validation)
+  # print('predicted_probabilities (after) ==>', predicted_probabilities)
 
   ## AUC calculation
-  calculateAuc(classes_validation, predicted_probabilities)
+  # calculateAuc(classes_validation, predicted_probabilities)
   plotRocCurve(classes_validation, predicted_probabilities)
 
   ## Precision, Accuracy, & Recall calculation
-  validateAndEvaluateModel(fitted_model, 'RANDOM_FOREST', features_validation, classes_validation)
+  # validateAndEvaluateModel(fitted_model, 'RAND', features_validation, classes_validation)
 
-
-
-from sklearn.preprocessing import label_binarize
-from sklearn.multiclass import OneVsRestClassifier
-def multiClassPlotRocCurve(model, classes, features_train, classes_train, features_validation, classes_validation):
-  y = label_binarize(classes, classes=[100, 200])
-  
-  n_classes = y.shape[1]
-  classifier = OneVsRestClassifier(model)
-  y_score = classifier.fit(features_train, classes_train).predict_proba(features_validation)
-  print('y (before) =>', classes )
-  print('y (after) =>', y )
-  print('n_classes =>', n_classes)
-  print('y_score =>', y_score)
-  print('classes_validation =>', classes_validation)
-
-  ## Compute ROC curve and ROC area for each class
-  fpr = dict()
-  tpr = dict()
-  roc_auc = dict()
-  for i in range(n_classes):
-      fpr[i], tpr[i], _ = roc_curve(classes_validation[:, i], y_score[:, i])
-      roc_auc[i] = auc(fpr[i], tpr[i])
-  
-  # fpr["micro"], tpr["micro"], _ = roc_curve(classes_validation.ravel(), y_score.ravel())
-  # roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
-
-  # plt.figure()
-  # lw = 2
-  # plt.plot(fpr[2], tpr[2], color='darkorange', lw=lw, label='ROC curve (area = %0.2f)' % roc_auc[2])
-  # plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
-  # plt.xlim([0.0, 1.0])
-  # plt.ylim([0.0, 1.05])
-  # plt.xlabel('False Positive Rate')
-  # plt.ylabel('True Positive Rate')
-  # plt.title('Receiver operating characteristic example')
-  # plt.legend(loc="lower right")
-  # plt.show()
 
 def calculateAuc(classes_validation, predicted_probabilities):
   auc = roc_auc_score(classes_validation, predicted_probabilities)
@@ -451,22 +416,35 @@ def plotRocCurve(classes_validation, predicted_probabilities):
   # plt.show()
 
   ## ROC curve: ver_2
-  fpr, tpr, thresholds = roc_curve(classes_validation, predicted_probabilities, pos_label=200)
-  print('threshold:', thresholds)
-  drawCurve(fpr, tpr)
-  
-  ## ROC curve: ver_3
-  # y_score = fitted_model.decision_function(features_validation)
-  # ## Compute ROC curve and ROC area for each class
-  # fpr = dict()
-  # tpr = dict()
-  # roc_auc = dict()
-  # for i in range(n_classes):
-  #     fpr[i], tpr[i], _ = roc_curve(classes_validation[:, i], y_score[:, i])
-  #     roc_auc[i] = auc(fpr[i], tpr[i])
+  predicted_probabilities_100 = predicted_probabilities[:, 0]
+  predicted_probabilities_200 = predicted_probabilities[:, 1]
 
-def drawCurve(fpr, tpr):  
-  plt.plot(fpr, tpr, color='orange', label='ROC')
+  
+  fpr, tpr, thresholds = roc_curve(classes_validation, predicted_probabilities_100, pos_label=100, drop_intermediate=False)
+  # print('predicted_probabilities (100) ==>', predicted_probabilities_100)
+  # print('classes_validation (100) ==>', classes_validation)
+  # print('thresholds (100) ==>', thresholds)
+  auc = roc_auc_score(classes_validation, predicted_probabilities_100)
+  drawCurve(fpr, tpr, 'red', 100, auc)
+
+  sum_of_auc = auc
+
+  fpr, tpr, thresholds = roc_curve(classes_validation, predicted_probabilities_200, pos_label=200, drop_intermediate=False)
+  print('predicted_probabilities (200) ==>', predicted_probabilities_200)
+  print('classes_validation (200) ==>', classes_validation)
+  print('thresholds (200) ==>', thresholds)
+  auc = roc_auc_score(classes_validation, predicted_probabilities_200)
+  drawCurve(fpr, tpr, 'green', 200, auc)
+  showCurve()
+
+  sum_of_auc = sum_of_auc + auc
+  print('sum_of_auc ==> ', sum_of_auc)
+
+def drawCurve(fpr, tpr, color, pos_label, auc):
+  plt.plot(fpr, tpr, color=color, label='ROC for class: ' + str(pos_label) + ' [AUC = ' + str(auc) + ']')
+  
+
+def showCurve():
   plt.plot([0, 1], [0, 1], color='darkblue', linestyle='--')
   plt.xlabel('False Positive Rate')
   plt.ylabel('True Positive Rate')
@@ -475,6 +453,62 @@ def drawCurve(fpr, tpr):
   plt.show()
 
 
+from sklearn.preprocessing import label_binarize
+from sklearn.multiclass import OneVsRestClassifier
+def multiClassPlotRocCurve(model, classes, features_train, classes_train, features_validation, classes_validation):
+  # y = label_binarize(classes, classes=[100, 200])
+  y = custom_binarize(classes, [100, 200])
+  
+  n_classes = y.shape[1]
+  classifier = OneVsRestClassifier(model)
+  y_score = classifier.fit(features_train, classes_train).predict_proba(features_validation)
+  # print('y (before) =>', classes )
+  print('y (after) =>', y )
+  # print('classes_validation =>', classes_validation)
+  print('y_score =>', y_score)
+  print('n_classes =>', n_classes )
+
+  ## change 1D array into 2D array
+  # classes_validation = numpy.concatenate( (1-classes_validation, classes_validation), axis=1)
+  classes_validation = y
+
+  ## Compute ROC curve and ROC area for each class
+  fpr = dict()
+  tpr = dict()
+  roc_auc = dict()
+  for i in range(n_classes):
+    fpr[i], tpr[i], _ = roc_curve(classes_validation, y_score[:, i])
+    roc_auc[i] = auc(fpr[i], tpr[i])
+  
+  fpr["micro"], tpr["micro"], _ = roc_curve(classes_validation.ravel(), y_score.ravel())
+  roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+
+  plt.figure()
+  lw = 2
+  plt.plot(fpr[2], tpr[2], color='darkorange', lw=lw, label='ROC curve (area = %0.2f)' % roc_auc[2])
+  plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
+  plt.xlim([0.0, 1.0])
+  plt.ylim([0.0, 1.05])
+  plt.xlabel('False Positive Rate')
+  plt.ylabel('True Positive Rate')
+  plt.title('Receiver operating characteristic example')
+  plt.legend(loc="lower right")
+  plt.show()
+
+def custom_binarize(y, classList):
+  binarized_y = []
+  
+  for single_class in y:
+    if single_class == 100:
+      binarized_y.append([1, 0])
+    else:
+      binarized_y.append([0, 1])
+  
+  # print('binarized_y (before)', binarized_y)
+  binarized_y = numpy.array(binarized_y)
+  # print('binarized_y (after)', binarized_y)
+
+  return binarized_y
 
 def trainAndCompareModels(dataset):
   dataArray = dataset.to_numpy()
