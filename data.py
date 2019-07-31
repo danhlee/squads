@@ -53,8 +53,15 @@ def insertMatches(directory):
 ###################################################
 # 1. helper method that inserts each match object into the MongoDB collection
 # 2. cleans data by omitting matches with duplicate roles & ambiguous DUO role
+# Returns: True = match is omitted
+#          False = match is NOT ommitted
 ###################################################
 def insertSingleMatch(match):
+
+  if 'gameId' not in match:
+    print('[ERROR] Error while inserting single match: match does not contain gameId property...')
+    print('match variable contains: ', match)
+    return True
   cursor = db.matches.find({ 'gameId': str(match['gameId']) })
 
   ## if match with identical gameId doesn't already exist in db...
@@ -100,7 +107,13 @@ def insertSingleMatch(match):
         matchTuple[9] = participant['championId']
       
     matchTuple[10] = winner
-    matchTuple[11] = str(match['gameId'])
+
+    if ('gameId' in match):
+      matchTuple[11] = str(match['gameId'])
+    else:
+      print('[ERROR] gameId property not found in match object. Match object printed below...')
+      print(match)
+      return False
 
     ## TODO test to count how many dirtyTuples exist in seed dataset
     # duplicate roles will cause 1 array position to contain None so it will not be inserted
@@ -109,6 +122,13 @@ def insertSingleMatch(match):
       return False
     else:
       return True
+
+def isNewMatch(match):
+  if 'gameId' in match:
+    cursor = db.matches.find({ 'gameId': str(match['gameId']) })
+    ## if match with identical gameId doesn't already exist in db...
+    return cursor.count() == 0
+  return False
 
 def getMatchDataDirectory(dataSource):
   print('dataSource =', dataSource)
@@ -166,9 +186,17 @@ def generateCsv():
 ## - 100 matches will be gathered for each player
 ## - mind rate limits
 ################################################
+# TOP: 'Licorice', 'Liquid Impact','FLY V1per', 'TSM BB', 'Htzr', 'Ssumdayday', 'fox solo', 'StrongHuni', 'Dhokla', 'Darshan',
+# JNG: 'dominans', 'Xmithie', 'Lizardsking', 'Chimpion', 'TSM Akaadian', 'dominans', 'Meteos', 'Wiggily', 'AnDa', 'clutch lira',
+# MID: 'TL Jensen', 'TSM Bjergsen', 'Pobelter', 'goldenglue', 'WlN ONLY', 'Malevolent mid', 'Trash you', 'Damonte', 'Anivia Kid', 'Huhi',
+# BOT: 'Doublelift', 'C9 Sneaky', 'TSM Zven', 'WildTurtle', 'Apollo Price', '100T Bang', 'Cody Pog', 'Stixxay', 'Deftly', 'OpTic Arrow',
+# SUP: 'From Iron', '5tunt', 'Hakuho', 'TSM Smoothie', 'Sun Prince', 'FLY JayJ', 'Vulcan 01', 'Bíg T', 'Aphromoo', 'Humble Diligent'
+################################################
 pro_usernames = [
-  'Doublelift'
+  
 ]
+
+
 
 
 ################################################

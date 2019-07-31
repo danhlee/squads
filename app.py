@@ -3,7 +3,7 @@ from flask_pymongo import PyMongo
 from flask_cors import CORS
 import requests
 
-from data import getMatchDataDirectory, insertMatches, insertSingleMatch, pro_usernames
+from data import getMatchDataDirectory, insertMatches, insertSingleMatch, isNewMatch, pro_usernames
 from train import trainModel, getPrediction, getModel, TREE, RAND
 from request_validation import valid_positions, valid_championIds
 
@@ -75,61 +75,91 @@ def seed():
 # generates matches.csv using NEW json data
 @app.route('/gather')
 def gather():
-  print('request.args[api_key] = ', request.args['api_key'])
-  
   ## check for empty api key
   ## if empty returns 401 unauthorized
-  if request.args['api_key'] == '':
+  if request.args.get('api_key') is None or request.args['api_key'] == '':
     return Response(response='No API key provided!', status=401, mimetype='text/plain')
-  
+  if request.args.get('summoner') is None or request.args['summoner'] == '':
+    return Response(response='No Summoner provided!', status=401, mimetype='text/plain')
+
+
+  print('request.args[api_key] = ', request.args['api_key'])
+  print('request.args[summoner] = ', request.args['summoner'])
+
+  ## TODO: Toggle summoner_list from UI or pro_usernames list
+  summoner_list = [str(request.args['summoner'])]
+  # summoner_list = pro_usernames
+
   ## fetch matches from riot api
   apiKeyParam = '?api_key=' + request.args['api_key']
-  
-  ## get summonerId using user name
-  url = 'https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/' + pro_usernames[0] + apiKeyParam 
-  print('url =', url)
-  summoner_json = requests.get( url ).json()
-  print('summoner_json =', summoner_json)
-
-
-  ## Check for invalid api key. 
-  ## status_code: 403 will be returned with message: forbidden
-  if 'status' in summoner_json and summoner_json['status']['status_code'] == 403:
-    return Response(response='Invalid API key!', status=403, mimetype='text/plain')
-
-
-  encrypted_summoner_id = summoner_json['accountId']
-  print('encrypted_summoner_id =', encrypted_summoner_id)
-
-  ## get 100 most recent matches by encrypted summonerId
-  url = 'https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/' + encrypted_summoner_id + apiKeyParam
-  matches_json = requests.get( url ).json()
-  matches_array = matches_json['matches']
-
-  print(' ')
-  print('Retrieved', len(matches_array), 'matches for', pro_usernames[0])
-  print(' ')
-
   countBefore = matches.count_documents({})
 
-  # if a summoner has less than 20 games played, iterate through all
-  if len(matches_array) > 20:
-    i = 0
-    # will make a fetch call for 20 latest games
-    while i < 20:
-      # 400 = 5v5 Draft Pick
-      # 420 = 5v5 Solo Queue Ranked
-      if matches_array[i]['queue'] == 400 or matches_array[i]['queue'] == 420:
-        url = 'https://na1.api.riotgames.com/lol/match/v4/matches/' + str(matches_array[i]['gameId']) + apiKeyParam
-        single_match_data = requests.get( url ).json()
-        insertSingleMatch(single_match_data)
-      i += 1
-  else:
-    for match in matches_array:
-      if match['queue'] == 400 or match[i]['queue'] == 420:
-        url = 'https://na1.api.riotgames.com/lol/match/v4/matches/' + str(matches_array[i]['gameId']) + apiKeyParam
-        single_match_data = requests.get( url ).json()
-        insertSingleMatch(single_match_data)
+  ## iterate through all PROs in pro_usernames array
+  for pro_username in summoner_list:
+    ## get summonerId using user name
+    url = 'https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/' + pro_username + apiKeyParam 
+    print('url =', url)
+    summoner_json = requests.get( url ).json()
+    print('summoner_json (response) =', summoner_json)
+
+
+    ## Check for invalid api key. 
+    ## status_code: 403 will be returned with message: forbidden
+    if 'status' in summoner_json and summoner_json['status']['status_code'] == 403:
+      return Response(response='Invalid API key!', status=403, mimetype='text/plain')
+    if 'status' in summoner_json and summoner_json['status']['status_code'] == 404:
+      msg_404 = str('Summoner', pro_username, 'not found!')
+      return Response(response=msg_404, status=404, mimetype='text/plain')
+    if 'status' in summoner_json and summoner_json['status']['status_code'] == 429:
+      return Response(response='Riot API rate limit exceeded!', status=429, mimetype='text/plain')
+
+
+    print('accountId in summoner_json ?', 'accountId' in summoner_json)
+    if 'accountId' not in summoner_json:
+      print('summoner_json (accountId check)= ', summoner_json)
+      return Response(response='Riot API rate limit exceeded!', status=429, mimetype='text/plain')
+
+    encrypted_summoner_id = summoner_json['accountId']
+    print('encrypted_summoner_id =', encrypted_summoner_id)
+
+    ## get 100 most recent matches by encrypted summonerId
+    url = 'https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/' + encrypted_summoner_id + apiKeyParam
+    matches_json = requests.get( url ).json()
+
+
+    ## check if summoner match request gave a valid object, IF NOT skip
+    if 'matches' not in matches_json:
+      continue
+    matches_array = matches_json['matches']
+    print('.')
+    print('[FETCH] Retrieved', len(matches_array), 'matches for:', pro_username)
+    print('.')
+
+
+    ## IF a summoner has MORE than 100 games played, iterate through first 100 (DRAFT/SOLOQ)
+    ## LESS than 100 recent games played, iterate through ALL (DRAFT/SOLOQ)
+    ## ELSE (if EQUALS 0) do nothing
+    MATCH_COUNT_CAP = 70
+
+    if len(matches_array) > MATCH_COUNT_CAP:
+      i = 0
+      # will make a fetch call for 20 latest games
+      while i < MATCH_COUNT_CAP:
+        # 400 = 5v5 Draft Pick
+        # 420 = 5v5 Solo Queue Ranked
+        if (matches_array[i]['queue'] == 400 or matches_array[i]['queue'] == 420):
+          url = 'https://na1.api.riotgames.com/lol/match/v4/matches/' + str(matches_array[i]['gameId']) + apiKeyParam
+          single_match_data = requests.get( url ).json()
+          insertSingleMatch(single_match_data)
+        i += 1
+    elif len(matches_array) <= MATCH_COUNT_CAP and len(matches_array) > 0:
+      for match in matches_array:
+        if (match['queue'] == 400 or match['queue'] == 420):
+          url = 'https://na1.api.riotgames.com/lol/match/v4/matches/' + str(match['gameId']) + apiKeyParam
+          single_match_data = requests.get( url ).json()
+          insertSingleMatch(single_match_data)
+    
+    print('[LOG] Finished processing matches for...', pro_username)
 
   countAfter = matches.count_documents({})
   numNewTuples = countAfter-countBefore

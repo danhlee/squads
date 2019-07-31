@@ -15,6 +15,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.decomposition import PCA
 from random import randint
 import pickle
 import sys
@@ -23,7 +24,11 @@ from data import generateCsv
 TREE = 'TREE'
 RAND = 'RAND'
 
-
+import scikitplot as skplt
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_curve
+from sklearn.metrics import auc
+from sklearn.metrics import roc_auc_score  
 
 ###################################################
 #
@@ -124,7 +129,7 @@ def trainModel(model_name):
   classes = dataArray[:,10]
   validation_size = 0.20
 
-  print('seed = ', seed)
+  print('seed =', seed)
   print('...splitting into training and validation sets using seed value:', seed)
 
   # split dataset into 80% training and 20% testing (also split by features and class for each)
@@ -193,7 +198,6 @@ def trainModel(model_name):
 def getFittedModel(model, features_train, classes_train):
   return model.fit(features_train, classes_train)
 
-
 ###################################################
 #
 #  validateAndEvaluateModel
@@ -255,8 +259,8 @@ def validateAndEvaluateModel(fitted_model, model_name, features_validation, clas
 # returns DataFrame
 def loadCsv():
   csv = "matches.csv"
-  names = ['b_top','b_jung','b_mid','b_bot','b_sup','r_top','r_jung','r_mid','r_bot','r_sup','winner']
-  dataset = pandas.read_csv(csv, names=names)
+  col_names = ['b_top','b_jung','b_mid','b_bot','b_sup','r_top','r_jung','r_mid','r_bot','r_sup','winner']
+  dataset = pandas.read_csv(csv, names=col_names)
   return dataset
 
 
@@ -303,38 +307,174 @@ def describeData(dataset):
   dataset.info()
   print('-----------------------------------------------------------------------------------------------------')
 
-  # TODO: ROC Curve Research
-  # ############## for model eval and testing ###################
-
-  
-  # comment for production
-  # dataset.hist()
-
-  # dataset.plot(kind='scatter', x='b_top', y='winner', c='blue')
-  # dataset.plot(kind='scatter', x='b_jung', y='winner', c='blue')
-  # dataset.plot(kind='scatter', x='b_mid', y='winner', c='blue')
-  # dataset.plot(kind='scatter', x='b_bot', y='winner', c='blue')
-  # dataset.plot(kind='scatter', x='b_sup', y='winner', c='blue')
-  # dataset.plot(kind='scatter', x='r_top', y='winner', c='red')
-  # dataset.plot(kind='scatter', x='r_jung', y='winner', c='red')
-  # dataset.plot(kind='scatter', x='r_mid', y='winner', c='red')
-  # dataset.plot(kind='scatter', x='r_bot', y='winner', c='red')
-  # dataset.plot(kind='scatter', x='r_sup', y='winner', c='red')
-  # plt.show()
-  # #############################################################
-
 
 
   
 ###################################################
 #
-#  test functions for comparing different models
+#  TEST functions for comparing different models
 #
 ###################################################
 def runModelComparison():
+  generateCsv()
   dataset = loadCsv()
   describeData(dataset)
   trainAndCompareModels(dataset)
+
+def runSingleModelTest():
+  # generateCsv()
+  dataset = loadCsv()
+  
+  ################ for model eval and testing ###################
+  
+  ## Histogram (don't need anymore...)
+  # dataset.hist()
+
+  ## Multivariate Scatter Plot
+  # scatter_matrix(dataset)
+  # plt.show()
+
+
+  ## ARRAY VERSION
+  # dataArray = dataset.to_numpy()
+  # Y = dataArray[:,10]                                   # split classifications col
+  # X = dataArray[:,0:10]                           # split features col
+
+
+  ## DATAFRAME VERSION (CORRECT ONE!)
+  # Y = dataset['winner']                                   # Split off classifications
+  # X = dataset.loc[:,:'r_sup']                             # Split off features (all rows, for cols from START through r_sup - excludes winner column)
+
+  # X_norm = (X - X.min())/(X.max() - X.min())
+  # pca = PCA(n_components=2)                                 #2-dimensional PCA
+  # transformed = pandas.DataFrame(pca.fit_transform(X_norm))
+
+  # plt.scatter(transformed[Y==100][0], transformed[Y==100][1], label=100, c='blue')
+  # plt.scatter(transformed[Y==200][0], transformed[Y==200][1], label=200, c='red')
+
+  # plt.legend()
+  # plt.show()
+  
+
+  dataArray = dataset.to_numpy()
+
+  ## slice array into features set and classes set
+  seed = 0
+  features = dataArray[:,0:10]
+  classes = dataArray[:,10]
+  ## validation set is 20% training is 80%
+  validation_size = 0.20
+
+  print('seed =', seed)
+  print('...splitting into training and validation sets using seed value:', seed)
+
+  ## split dataset into 80% training and 20% testing (also split by features and class for each)
+  features_train, features_validation, classes_train, classes_validation = model_selection.train_test_split(features, classes, test_size=validation_size, random_state=seed)
+  
+  ## select model to test
+  model = RandomForestClassifier(n_estimators=100)
+  # model = DecisionTreeClassifier()
+
+  
+  ## FIT model and get predict_proba array
+  fitted_model = getFittedModel(model, features_train, classes_train)
+  predicted_probabilities = fitted_model.predict_proba(features_validation)
+
+  
+  
+  ########################################################################################################################################### TEST
+  ########################################################################################################################################### TEST
+  ########################################################################################################################################### TEST
+  # multiClassPlotRocCurve(model, classes, features_train, classes_train, features_validation, classes_validation)
+  # print('features_validation => ...',  features_validation)
+  # print('classes_validation => ...',  classes_validation)
+  # print('predicted_probabilities ==> ...  ', predicted_probabilities)
+  
+
+
+  ## SPLIT predict proba 2D array to get just 1 column
+  predicted_probabilities = predicted_probabilities[:, 1]
+
+  ## AUC calculation
+  calculateAuc(classes_validation, predicted_probabilities)
+  plotRocCurve(classes_validation, predicted_probabilities)
+
+  ## Precision, Accuracy, & Recall calculation
+  validateAndEvaluateModel(fitted_model, 'RANDOM_FOREST', features_validation, classes_validation)
+
+
+
+from sklearn.preprocessing import label_binarize
+from sklearn.multiclass import OneVsRestClassifier
+def multiClassPlotRocCurve(model, classes, features_train, classes_train, features_validation, classes_validation):
+  y = label_binarize(classes, classes=[100, 200])
+  
+  n_classes = y.shape[1]
+  classifier = OneVsRestClassifier(model)
+  y_score = classifier.fit(features_train, classes_train).predict_proba(features_validation)
+  print('y (before) =>', classes )
+  print('y (after) =>', y )
+  print('n_classes =>', n_classes)
+  print('y_score =>', y_score)
+  print('classes_validation =>', classes_validation)
+
+  ## Compute ROC curve and ROC area for each class
+  fpr = dict()
+  tpr = dict()
+  roc_auc = dict()
+  for i in range(n_classes):
+      fpr[i], tpr[i], _ = roc_curve(classes_validation[:, i], y_score[:, i])
+      roc_auc[i] = auc(fpr[i], tpr[i])
+  
+  # fpr["micro"], tpr["micro"], _ = roc_curve(classes_validation.ravel(), y_score.ravel())
+  # roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+
+  # plt.figure()
+  # lw = 2
+  # plt.plot(fpr[2], tpr[2], color='darkorange', lw=lw, label='ROC curve (area = %0.2f)' % roc_auc[2])
+  # plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
+  # plt.xlim([0.0, 1.0])
+  # plt.ylim([0.0, 1.05])
+  # plt.xlabel('False Positive Rate')
+  # plt.ylabel('True Positive Rate')
+  # plt.title('Receiver operating characteristic example')
+  # plt.legend(loc="lower right")
+  # plt.show()
+
+def calculateAuc(classes_validation, predicted_probabilities):
+  auc = roc_auc_score(classes_validation, predicted_probabilities)
+  print('AUC: %.2f' % auc)
+
+def plotRocCurve(classes_validation, predicted_probabilities):
+  ## ROC curve: ver_1
+  # skplt.metrics.plot_roc(classes_validation, predicted_probabilities)
+  # plt.show()
+
+  ## ROC curve: ver_2
+  fpr, tpr, thresholds = roc_curve(classes_validation, predicted_probabilities, pos_label=200)
+  print('threshold:', thresholds)
+  drawCurve(fpr, tpr)
+  
+  ## ROC curve: ver_3
+  # y_score = fitted_model.decision_function(features_validation)
+  # ## Compute ROC curve and ROC area for each class
+  # fpr = dict()
+  # tpr = dict()
+  # roc_auc = dict()
+  # for i in range(n_classes):
+  #     fpr[i], tpr[i], _ = roc_curve(classes_validation[:, i], y_score[:, i])
+  #     roc_auc[i] = auc(fpr[i], tpr[i])
+
+def drawCurve(fpr, tpr):  
+  plt.plot(fpr, tpr, color='orange', label='ROC')
+  plt.plot([0, 1], [0, 1], color='darkblue', linestyle='--')
+  plt.xlabel('False Positive Rate')
+  plt.ylabel('True Positive Rate')
+  plt.title('Receiver Operating Characteristic (ROC) Curve')
+  plt.legend()
+  plt.show()
+
+
 
 def trainAndCompareModels(dataset):
   dataArray = dataset.to_numpy()
@@ -345,7 +485,7 @@ def trainAndCompareModels(dataset):
   classes = dataArray[:,10]
   # 20 percent of tuples reserved for validation
   validation_size = 0.20
-  seed = 5
+  seed = 0
   print('...seed value:', seed)
   print()
   features_train, features_validation, classes_train, classes_validation = model_selection.train_test_split(features, classes, test_size=validation_size, random_state=seed)
@@ -362,7 +502,7 @@ def trainAndCompareModels(dataset):
   # Gaussian Naive Bayes
   #models.append(('BAYES', GaussianNB()))
   # Support Vector Classification
-  models.append(('SVM', SVC(gamma='auto')))
+  models.append(('SVM', SVC(kernel='linear', gamma='auto')))
   # Random Forest Classifier
   #models.append(('RAND', RandomForestClassifier()))
 
@@ -424,7 +564,10 @@ def validateAndEvaluateAllModels(model, model_name, features_train, classes_trai
 #
 #  direct comparison test (uncomment and run file!)
 #
+#  run heroku locally and train 
 ###################################################
 # print('...running model and comparison')
 # runModelComparison()
 
+# print('...testing single model')
+# runSingleModelTest()
