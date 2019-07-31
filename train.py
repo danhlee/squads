@@ -420,7 +420,7 @@ def plotRocCurve(classes_validation, predicted_probabilities):
   predicted_probabilities_200 = predicted_probabilities[:, 1]
 
   
-  fpr, tpr, thresholds = roc_curve(classes_validation, predicted_probabilities_100, pos_label=100, drop_intermediate=False)
+  fpr, tpr, thresholds = roc_curve(classes_validation, predicted_probabilities_100, pos_label=100)
   # print('predicted_probabilities (100) ==>', predicted_probabilities_100)
   # print('classes_validation (100) ==>', classes_validation)
   # print('thresholds (100) ==>', thresholds)
@@ -429,7 +429,7 @@ def plotRocCurve(classes_validation, predicted_probabilities):
 
   sum_of_auc = auc
 
-  fpr, tpr, thresholds = roc_curve(classes_validation, predicted_probabilities_200, pos_label=200, drop_intermediate=False)
+  fpr, tpr, thresholds = roc_curve(classes_validation, predicted_probabilities_200, pos_label=200)
   print('predicted_probabilities (200) ==>', predicted_probabilities_200)
   print('classes_validation (200) ==>', classes_validation)
   print('thresholds (200) ==>', thresholds)
@@ -603,5 +603,5 @@ def validateAndEvaluateAllModels(model, model_name, features_train, classes_trai
 # print('...running model and comparison')
 # runModelComparison()
 
-# print('...testing single model')
-# runSingleModelTest()
+print('...testing single model')
+runSingleModelTest()
