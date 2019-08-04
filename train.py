@@ -115,38 +115,42 @@ def getModel(model_name):
 # creates a model specified by model_name parameter and saves as model_name.pkl file (overwrites .pkl file)
 # ENHANCEMENT: returns evaluation object {modelName, avg_precision, avg_recall, avg_accuracy, avg_f1_score, confusion_matrix(FP,FN,TP,TN) }
 def trainModel(model_name):
-  seed = 5
-  # generate csv from all tuples in db
+  ## set seed used to initialize internal random number generator for train_test_split
+  seed = 0
+  print('[log] seed =', seed)
+
+  ## generate csv from all tuples in db
   generateCsv()
   
-  # create dataframe and convert to 2d array
+  ## create dataframe and convert to 2d array
   dataset = loadCsv()
-  describeData(dataset)
   dataArray = dataset.to_numpy()
 
-  # slice array into features set and classes set
+  ## console log that prints first 20 tuples of dataset and other descriptors
+  describeData(dataset)
+  
+  ## slice dataset into 2 arrays: features and classes
   features = dataArray[:,0:10]
   classes = dataArray[:,10]
   validation_size = 0.20
 
-  print('seed =', seed)
-  print('...splitting into training and validation sets using seed value:', seed)
-
   # split dataset into 80% training and 20% testing (also split by features and class for each)
+  print('[LOG]...splitting into training and validation sets using seed value:', seed)
   features_train, features_validation, classes_train, classes_validation = model_selection.train_test_split(features, classes, test_size=validation_size, random_state=seed)
   
   # set model statically at endpoint level
   # create model
   if (model_name == RAND):
     print()
-    print('...creating Random Forest Classifier model')
+    print('[LOG]...creating Random Forest Classifier model')
     model = RandomForestClassifier(n_estimators=100)
   else:
     print()
-    print('...creating TREE model')
+    print('[LOG]...creating TREE model')
     model = DecisionTreeClassifier()
 
-  # [CROSS-VALIDATION] k-folds cross-validation
+  ## [CROSS-VALIDATION] k-folds cross-validation
+  # PRINT: k-folds accuracy
   print()
   print('...performing cross-validation using k-Folds with 10 splits')
   print('...using seed value:', seed)
@@ -170,19 +174,22 @@ def trainModel(model_name):
   print(' ')
   print('-----------------------------------------------------------------------------------------------------')
 
-  ##[VALIDATION SET] evaluate model with validation set and print results
+  ## [VALIDATION SET] evaluate model with validation set and print results:
+  # predicts with validation set (vs)
+  # PRINT: confusion matrix
+  # PRINT: classification report
+  # PRINT: avg accuracy
   fitted_model = getFittedModel(model, features_train, classes_train)
   fitted_model_evaluation = validateAndEvaluateModel(fitted_model, model_name, features_validation, classes_validation)
-
   
   if model_name == TREE:
     filename = 'tree.pkl'
   else:
     filename = 'rand.pkl'
 
-  # [CREATE MODEL FILE] create .pkl file to store model
-  print('...creating pickle file: ' + filename)
-  # wb will overwrite binary files
+  ## [CREATE MODEL FILE] create .pkl file to store model
+  print('[LOG]...creating pickle file: ' + filename)
+  ## wb will overwrite binary files
   outputFile = open(filename, 'wb')
   pickle.dump(fitted_model, outputFile)
   outputFile.close()
@@ -315,10 +322,10 @@ def describeData(dataset):
 #  TEST functions for comparing different models
 #
 ###################################################
-def runModelComparison():
-  generateCsv()
+def runModelComparisonTest():
+  # generateCsv()
   dataset = loadCsv()
-  describeData(dataset)
+  # describeData(dataset)
   trainAndCompareModels(dataset)
 
 def runSingleModelTest():
@@ -403,7 +410,7 @@ def runSingleModelTest():
   plotRocCurve(classes_validation, predicted_probabilities)
 
   ## Precision, Accuracy, & Recall calculation
-  # validateAndEvaluateModel(fitted_model, 'RAND', features_validation, classes_validation)
+  validateAndEvaluateModel(fitted_model, 'RAND', features_validation, classes_validation)
 
 
 def calculateAuc(classes_validation, predicted_probabilities):
@@ -419,7 +426,7 @@ def plotRocCurve(classes_validation, predicted_probabilities):
   predicted_probabilities_100 = predicted_probabilities[:, 0]
   predicted_probabilities_200 = predicted_probabilities[:, 1]
 
-  
+  # TODO: Decide on 100 or 200 to represent positive case
   fpr, tpr, thresholds = roc_curve(classes_validation, predicted_probabilities_100, pos_label=100)
   # print('predicted_probabilities (100) ==>', predicted_probabilities_100)
   # print('classes_validation (100) ==>', classes_validation)
@@ -427,7 +434,7 @@ def plotRocCurve(classes_validation, predicted_probabilities):
   auc = roc_auc_score(classes_validation, predicted_probabilities_100)
   drawCurve(fpr, tpr, 'red', 100, auc)
 
-  sum_of_auc = auc
+  auc_100 = auc
 
   fpr, tpr, thresholds = roc_curve(classes_validation, predicted_probabilities_200, pos_label=200)
   print('predicted_probabilities (200) ==>', predicted_probabilities_200)
@@ -437,7 +444,7 @@ def plotRocCurve(classes_validation, predicted_probabilities):
   drawCurve(fpr, tpr, 'green', 200, auc)
   showCurve()
 
-  sum_of_auc = sum_of_auc + auc
+  sum_of_auc = auc_100 + auc
   print('sum_of_auc ==> ', sum_of_auc)
 
 def drawCurve(fpr, tpr, color, pos_label, auc):
@@ -520,45 +527,48 @@ def trainAndCompareModels(dataset):
   # 20 percent of tuples reserved for validation
   validation_size = 0.20
   seed = 0
-  print('...seed value:', seed)
-  print()
+  scoring = 'accuracy'
   features_train, features_validation, classes_train, classes_validation = model_selection.train_test_split(features, classes, test_size=validation_size, random_state=seed)
 
   models = []
   # Logistic Regression Classifier
-  # models.append(('LR', LogisticRegression(solver='liblinear', multi_class='ovr')))
+  models.append(('LR', LogisticRegression(solver='liblinear', multi_class='ovr')))
   # Linear Discriminant Analysis
-  #models.append(('LDA', LinearDiscriminantAnalysis()))
+  models.append(('LDA', LinearDiscriminantAnalysis()))
   # K-nearest neighbors Classifier
-  #models.append(('KNN', KNeighborsClassifier()))
+  models.append(('KNN', KNeighborsClassifier()))
   # Decision tree Classifier
-  # models.append(('TREE', DecisionTreeClassifier()))
+  models.append(('TREE', DecisionTreeClassifier()))
   # Gaussian Naive Bayes
-  #models.append(('BAYES', GaussianNB()))
+  models.append(('BAYES', GaussianNB()))
   # Support Vector Classification
-  models.append(('SVM', SVC(kernel='linear', gamma='auto')))
+  # models.append(('SVM', SVC(kernel='linear', gamma='auto')))
   # Random Forest Classifier
-  #models.append(('RAND', RandomForestClassifier()))
+  models.append(('RAND', RandomForestClassifier(n_estimators=100)))
 
-  print('----------------------------------- MODEL COMPARISONS -----------------------------------')
+  print('----------------------------------- 10-FOLDS X-Validation -------------------------------------')
   print()
-
-  scoring = 'accuracy'
+  print('[LOG]...splitting training/test sets using seed value:', seed)
+  print('[LOG]...test set size:', validation_size)
+  print('[LOG]...scoring metric used for 10-Folds X-Eval:', scoring)
+  print()
+  print()
+  
   for name, model in models:
     kfold = model_selection.KFold(n_splits=10, random_state=seed)
-    cv_results = model_selection.cross_val_score(model, features_train, classes_train, cv=kfold, scoring=scoring)
+    cv_results = model_selection.cross_val_score(model, features, classes, cv=kfold, scoring=scoring)
 
     results_overview = "[ %f, %f ]" % (cv_results.mean(), cv_results.std())
     print()
-    print('[START] Cross-Validation Results for', name)
+    print('[START]-------------------------------------Cross-Validation Results for', name)
     print()
-    print('             < 10-folds cross-validation accuracies >')
+    print('[...individual accuracies for each of the 10-folds cross-validations')
     print(cv_results)
     print()
     
-    print('[ mean, std ]')
+    print('[ mean    , std     ]')
     print(results_overview)
-    validateAndEvaluateAllModels(model, name, features_train, classes_train, features_validation, classes_validation)
+    # validateAndEvaluateAllModels(model, name, features_train, classes_train, features_validation, classes_validation)
 
 def validateAndEvaluateAllModels(model, model_name, features_train, classes_train, features_validation, classes_validation):
   print('----------------------------------------validate all models---------------------------------------------')
@@ -596,12 +606,12 @@ def validateAndEvaluateAllModels(model, model_name, features_train, classes_trai
 
 ###################################################
 #
-#  direct comparison test (uncomment and run file!)
+#  MANUAL TESTING (uncomment and run file!)
 #
 #  run heroku locally and train 
 ###################################################
-# print('...running model and comparison')
-# runModelComparison()
+# print('...running multi-model comparison')
+# runModelComparisonTest()
 
-print('...testing single model')
-runSingleModelTest()
+# print('...testing single model')
+# runSingleModelTest()
