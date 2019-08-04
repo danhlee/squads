@@ -113,8 +113,6 @@ def gather():
     if 'status' in summoner_json and summoner_json['status']['status_code'] == 429:
       return Response(response='Riot API rate limit exceeded!', status=429, mimetype='text/plain')
 
-
-    print('accountId in summoner_json ?', 'accountId' in summoner_json)
     if 'accountId' not in summoner_json:
       print('summoner_json (accountId check)= ', summoner_json)
       return Response(response='Riot API rate limit exceeded!', status=429, mimetype='text/plain')

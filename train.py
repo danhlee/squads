@@ -150,29 +150,29 @@ def trainModel(model_name):
     model = DecisionTreeClassifier()
 
   ## [CROSS-VALIDATION] k-folds cross-validation
-  # PRINT: k-folds accuracy
-  print()
-  print('...performing cross-validation using k-Folds with 10 splits')
-  print('...using seed value:', seed)
-  scoring = 'accuracy'
-  kfold = model_selection.KFold(n_splits=10, random_state=seed)
-  cv_results = model_selection.cross_val_score(model, features_train, classes_train, cv=kfold, scoring=scoring)
+  # PRINT: k-folds accuracy for training set ONLY
+  # print()
+  # print('...performing cross-validation using k-Folds with 10 splits')
+  # print('...using seed value:', seed)
+  # scoring = 'accuracy'
+  # kfold = model_selection.KFold(n_splits=10, random_state=seed)
+  # cv_results = model_selection.cross_val_score(model, features_train, classes_train, cv=kfold, scoring=scoring)
   
-  print(' ')
-  results_overview = "[ %f, %f ]" % (cv_results.mean(), cv_results.std())
-  print(' ')
-  print('--------------------------------------k-folds cross-validation---------------------------------------')
-  print('[START] Cross-Validation Results for', model_name)
-  print()
-  print('             < 10-folds cross-validation accuracies >')
-  print(cv_results)
-  print()
+  # print(' ')
+  # results_overview = "[ %f, %f ]" % (cv_results.mean(), cv_results.std())
+  # print(' ')
+  # print('--------------------------------------k-folds cross-validation---------------------------------------')
+  # print('[START] Cross-Validation Results for', model_name)
+  # print()
+  # print('             < 10-folds cross-validation accuracies >')
+  # print(cv_results)
+  # print()
   
-  # mean accuracy and std of k-folds cross-validation
-  print('[ mean, std ]')
-  print(results_overview)
-  print(' ')
-  print('-----------------------------------------------------------------------------------------------------')
+  # # mean accuracy and std of k-folds cross-validation
+  # print('[ mean, std ]')
+  # print(results_overview)
+  # print(' ')
+  # print('-----------------------------------------------------------------------------------------------------')
 
   ## [VALIDATION SET] evaluate model with validation set and print results:
   # predicts with validation set (vs)
