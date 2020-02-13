@@ -1,18 +1,30 @@
-"# squads" 
+# SQUADS
+Presentation Slides: https://tinyurl.com/squads-presentation
+Thesis: https://tinyurl.com/squads-thesis
+Application UI: http://squads.squalorarchive.com/
 
 
-# run heroku locally using Procfile
+
+
+
+
+
+
+
+
+
+# To run Heroku locally using Procfile
 heroku local -f Procfile.windows
 
-# flush logs when running locally for console.logs
+# To flush logs when running locally for console.logs
 ctrl + s
 
 
 
-## 1000 matches
-# 206 dirty matches
-# 794 clean matches
+# SIDE NOTES (To Be Deleted...)
+# 1000 matches
+206 dirty matches
+794 clean matches
 
-
-## Pro / Challenger Matches
-# 1424
+# Pro / Challenger Matches
+1424
