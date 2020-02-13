@@ -1,6 +1,9 @@
 # SQUADS
+
 Presentation Slides: https://tinyurl.com/squads-presentation
+
 Thesis: https://tinyurl.com/squads-thesis
+
 Application UI: http://squads.squalorarchive.com/
 
 
@@ -17,7 +20,7 @@ To run Heroku locally using Procfile:
 <code>heroku local -f Procfile.windows</code>
 
 To flush logs when running locally for console.logs:
-ctrl + s
+<code>ctrl + s</code>
 
 
 
