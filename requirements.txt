@@ -20,7 +20,7 @@ Mako==1.0.14
 MarkupSafe==1.1.1
 matplotlib==3.1.1
 mccabe==0.6.1
-numpy==1.17.0
+numpy==1.22.0
 pandas==0.25.0
 pur==5.2.2
 pylint==2.3.1
